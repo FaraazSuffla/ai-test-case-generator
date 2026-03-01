@@ -5,6 +5,7 @@ Usage:
     python generate_tests.py --url https://example.com/login --format playwright
     python generate_tests.py --describe "User registration" --format gherkin
     python generate_tests.py --url https://example.com --format playwright --analyze
+    python generate_tests.py --demo --describe "login page" --format playwright
     python generate_tests.py --costs
 """
 
@@ -19,6 +20,7 @@ from src.generator import generate_tests
 from src.formatters.playwright_fmt import save_playwright_tests
 from src.formatters.gherkin_fmt import save_gherkin_tests
 from src.cost_tracker import display_cost_summary
+from src.demo_templates import get_demo_output
 
 console = Console()
 
@@ -67,6 +69,12 @@ BANNER = """
     help="Analyse page accessibility tree for context-aware tests.",
 )
 @click.option(
+    "--demo",
+    is_flag=True,
+    default=False,
+    help="Run in demo mode using built-in templates (no API key needed).",
+)
+@click.option(
     "--costs",
     is_flag=True,
     default=False,
@@ -79,6 +87,7 @@ def main(
     provider: str,
     model: str,
     analyze: bool,
+    demo: bool,
     costs: bool,
 ) -> None:
     """Generate AI-powered test cases from URLs or feature descriptions."""
@@ -95,47 +104,69 @@ def main(
             "[red]✗ Error:[/red] Provide either --url or --describe.\n"
             "\nExamples:\n"
             "  python generate_tests.py --url https://example.com/login --format playwright\n"
-            "  python generate_tests.py --describe \"User registration\" --format gherkin"
+            "  python generate_tests.py --describe \"User registration\" --format gherkin\n"
+            "  python generate_tests.py --demo --describe \"login page\" --format playwright"
         )
         sys.exit(1)
 
-    # Analyse page if URL provided
-    analysis = None
-    if url:
-        analysis = analyse_page(url, include_a11y=analyze)
+    source = url or describe
 
-    # Generate tests
-    try:
-        source = url or describe
-        test_code = generate_tests(
+    # Demo mode — no API key needed
+    if demo:
+        console.print(
+            "\n[yellow]⚡ Demo mode:[/yellow] Using built-in templates (no API key required)\n"
+        )
+        test_code = get_demo_output(
             format=output_format,
-            provider=provider,
-            model=model,
-            url=url,
-            description=describe,
-            analysis=analysis,
-            include_a11y=analyze,
+            url=url or "",
+            description=describe or "",
         )
-    except EnvironmentError as e:
-        console.print(f"\n[red]✗ Configuration error:[/red] {e}")
-        sys.exit(1)
-    except Exception as e:
-        console.print(f"\n[red]✗ Generation failed:[/red] {e}")
-        sys.exit(1)
+        console.print(
+            f"[green]✓[/green] Generated {output_format} demo tests"
+        )
+    else:
+        # Analyse page if URL provided
+        analysis = None
+        if url:
+            analysis = analyse_page(url, include_a11y=analyze)
+
+        # Generate tests via LLM
+        try:
+            test_code = generate_tests(
+                format=output_format,
+                provider=provider,
+                model=model,
+                url=url,
+                description=describe,
+                analysis=analysis,
+                include_a11y=analyze,
+            )
+        except EnvironmentError as e:
+            console.print(f"\n[red]✗ Configuration error:[/red] {e}")
+            console.print(
+                "\n[yellow]💡 Tip:[/yellow] Run with [bold]--demo[/bold] to "
+                "try the tool without an API key:\n"
+                "  python generate_tests.py --demo --describe \"login page\" --format playwright"
+            )
+            sys.exit(1)
+        except Exception as e:
+            console.print(f"\n[red]✗ Generation failed:[/red] {e}")
+            sys.exit(1)
 
     # Save output
     if output_format == "playwright":
-        filepath = save_playwright_tests(test_code, source, provider)
+        filepath = save_playwright_tests(test_code, source, provider if not demo else "demo")
     else:
-        filepath = save_gherkin_tests(test_code, source, provider)
+        filepath = save_gherkin_tests(test_code, source, provider if not demo else "demo")
 
     # Final summary
+    mode_label = " (demo)" if demo else ""
     console.print(
         Panel(
-            f"[green]✓ Tests generated successfully![/green]\n\n"
+            f"[green]✓ Tests generated successfully!{mode_label}[/green]\n\n"
             f"File: [bold]{filepath}[/bold]\n"
             f"Format: {output_format}\n"
-            f"Provider: {provider}\n\n"
+            f"Provider: {'demo (built-in templates)' if demo else provider}\n\n"
             f"Run with: [dim]{'pytest ' + filepath + ' -v' if output_format == 'playwright' else 'behave ' + filepath}[/dim]",
             title="✨ Complete",
             border_style="green",
