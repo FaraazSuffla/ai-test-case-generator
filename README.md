@@ -23,21 +23,33 @@ pip install -r requirements.txt
 playwright install chromium
 ```
 
-### Set your API key
+### Try It Instantly (No API Key Needed)
+
+The `--demo` flag lets you run the full tool using built-in templates — no API key or spending required:
 
 ```bash
-# Option 1: Environment variable
+# Generate Playwright tests in demo mode
+python generate_tests.py --demo --url https://example.com/login --format playwright
+
+# Generate Gherkin feature file in demo mode
+python generate_tests.py --demo --describe "User registration with email and password" --format gherkin
+
+# Try different features — the tool detects login vs registration automatically
+python generate_tests.py --demo --describe "sign up page" --format playwright
+```
+
+Demo mode produces the same structured output as the real AI — it's perfect for seeing the tool in action, understanding the output format, or demonstrating the project in interviews.
+
+### Full Mode (With API Key)
+
+For AI-generated tests tailored to any page or feature:
+
+```bash
+# Set your API key
 export ANTHROPIC_API_KEY="your-key-here"
 # OR
 export OPENAI_API_KEY="your-key-here"
 
-# Option 2: .env file
-echo 'ANTHROPIC_API_KEY=your-key-here' > .env
-```
-
-### Usage
-
-```bash
 # Generate Playwright tests from a URL
 python generate_tests.py --url https://example.com/login --format playwright
 
@@ -67,6 +79,19 @@ output/
 ├── login.feature
 └── test_registration_playwright.py
 ```
+
+## CLI Options
+
+| Flag | Description |
+|------|-------------|
+| `--url` | URL of the web page to generate tests for |
+| `--describe` | Feature description to generate tests from |
+| `--format` | Output format: `playwright` or `gherkin` (default: playwright) |
+| `--provider` | LLM provider: `anthropic` or `openai` (default: anthropic) |
+| `--model` | Specific model to use (overrides provider default) |
+| `--analyze` | Extract page accessibility tree for context-aware tests |
+| `--demo` | Run with built-in templates — no API key needed |
+| `--costs` | Display API usage cost summary |
 
 ## Example: AI-Generated vs Hand-Written Tests
 
@@ -205,6 +230,7 @@ ai-test-case-generator/
 │   ├── __init__.py
 │   ├── analyzer.py            # Page analysis & accessibility tree extraction
 │   ├── generator.py           # LLM integration (Claude + OpenAI)
+│   ├── demo_templates.py      # Built-in templates for --demo mode
 │   ├── formatters/
 │   │   ├── __init__.py
 │   │   ├── playwright_fmt.py  # Playwright test stub formatter
