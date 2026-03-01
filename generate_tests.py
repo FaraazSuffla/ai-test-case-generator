@@ -15,11 +15,8 @@ import click
 from rich.console import Console
 from rich.panel import Panel
 
-from src.analyzer import analyse_page
-from src.generator import generate_tests
 from src.formatters.playwright_fmt import save_playwright_tests
 from src.formatters.gherkin_fmt import save_gherkin_tests
-from src.cost_tracker import display_cost_summary
 from src.demo_templates import get_demo_output
 
 console = Console()
@@ -95,6 +92,7 @@ def main(
 
     # Cost summary mode
     if costs:
+        from src.cost_tracker import display_cost_summary
         display_cost_summary()
         return
 
@@ -125,6 +123,10 @@ def main(
             f"[green]✓[/green] Generated {output_format} demo tests"
         )
     else:
+        # Only import heavy dependencies when actually needed
+        from src.analyzer import analyse_page
+        from src.generator import generate_tests
+
         # Analyse page if URL provided
         analysis = None
         if url:
