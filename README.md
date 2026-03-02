@@ -73,7 +73,7 @@ output/
 ├── test_example_com_login_playwright.py
 ├── example_com_login.feature
 ├── test_sign_up_page_playwright.py
-└── report_example_com_login.html        ← HTML report (with --report flag)
+└── report_https___example_com_login.html   ← HTML report (with --report flag)
 ```
 
 ### Full Mode (With API Key)
@@ -124,7 +124,7 @@ py generate_tests.py --costs
 
 ## HTML Coverage Report
 
-Add `--report` to any command to generate a visual HTML report:
+Add `--report` to any command to generate a visual HTML report that auto-opens in your browser:
 
 ```bash
 py generate_tests.py --demo --url https://example.com/login --format playwright --report
@@ -133,12 +133,12 @@ py generate_tests.py --demo --url https://example.com/login --format playwright 
 The report includes:
 
 - **Test metadata** — source URL, format, provider, timestamp
-- **Coverage stats** — total test count and category breakdown
-- **Category cards** — tests grouped by happy path, negative, edge case, and boundary with progress bars
-- **Full generated code** — the complete test file in a scrollable code block
-- **Dark theme** — responsive design, self-contained with no external dependencies
+- **Coverage dashboard** — total test count with category breakdown cards
+- **Test case table** — every test listed with name, category badge, and description
+- **Full generated code** — collapsible code block with the complete test file
+- **Dark theme** — responsive, self-contained HTML with no external dependencies
 
-Open the generated `output/report_*.html` file in any browser to view it.
+The report is saved to `output/report_*.html` and opens automatically in your default browser.
 
 ## Example: AI-Generated vs Hand-Written Tests
 
