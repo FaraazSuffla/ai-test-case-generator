@@ -216,7 +216,6 @@ def generate_report(
         icon = _get_category_icon(cat_key)
         count = len(cat_tests)
 
-        # Badge class
         badge_map = {
             "happy_path": "badge-happy",
             "negative": "badge-negative",
@@ -225,11 +224,10 @@ def generate_report(
         }
         badge_class = badge_map.get(cat_key, "badge-happy")
 
-        # Build rows for this category
         rows = ""
         for test in cat_tests:
             global_index += 1
-            desc = test["description"] or "—"
+            desc = test["description"] or "\u2014"
             rows += f"""
                     <tr>
                         <td class="row-num">{global_index}</td>
@@ -264,7 +262,6 @@ def generate_report(
             </div>
         </div>"""
 
-    # Escape the code for HTML display
     escaped_code = escape(test_code)
 
     html = f"""<!DOCTYPE html>
@@ -272,7 +269,7 @@ def generate_report(
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test Report — AI Test Case Generator</title>
+    <title>Test Report &mdash; AI Test Case Generator</title>
     <style>
         * {{ margin: 0; padding: 0; box-sizing: border-box; }}
 
@@ -304,14 +301,8 @@ def generate_report(
             margin-bottom: 0.5rem;
         }}
 
-        .header h1 span {{
-            color: #38bdf8;
-        }}
-
-        .header .subtitle {{
-            color: #94a3b8;
-            font-size: 0.95rem;
-        }}
+        .header h1 span {{ color: #38bdf8; }}
+        .header .subtitle {{ color: #94a3b8; font-size: 0.95rem; }}
 
         .header-actions {{
             margin-top: 1rem;
@@ -333,24 +324,10 @@ def generate_report(
             transition: all 0.2s;
         }}
 
-        .btn-pdf {{
-            background: #1e293b;
-            color: #e2e8f0;
-        }}
-
-        .btn-pdf:hover {{
-            background: #334155;
-        }}
-
-        .btn-expand {{
-            background: #1e293b;
-            color: #94a3b8;
-        }}
-
-        .btn-expand:hover {{
-            background: #334155;
-            color: #e2e8f0;
-        }}
+        .btn-pdf {{ background: #1e293b; color: #e2e8f0; }}
+        .btn-pdf:hover {{ background: #334155; }}
+        .btn-expand {{ background: #1e293b; color: #94a3b8; }}
+        .btn-expand:hover {{ background: #334155; color: #e2e8f0; }}
 
         /* Meta info */
         .meta {{
@@ -363,33 +340,29 @@ def generate_report(
             padding: 1.25rem 1.5rem;
         }}
 
-        .meta-item {{
-            display: flex;
-            flex-direction: column;
-            gap: 0.2rem;
+        .meta-item {{ display: flex; flex-direction: column; gap: 0.2rem; }}
+        .meta-label {{ font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; }}
+        .meta-value {{ font-size: 0.95rem; color: #e2e8f0; word-break: break-all; }}
+
+        /* Section titles */
+        .section-title {{ font-size: 1.1rem; font-weight: 600; color: #f8fafc; margin-bottom: 1rem; }}
+
+        /* Info note */
+        .info-note {{
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-left: 4px solid #38bdf8;
+            border-radius: 8px;
+            padding: 0.85rem 1.25rem;
+            margin-bottom: 1.25rem;
+            font-size: 0.8rem;
+            color: #94a3b8;
+            line-height: 1.6;
         }}
 
-        .meta-label {{
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #64748b;
-        }}
+        .info-note strong {{ color: #e2e8f0; }}
 
-        .meta-value {{
-            font-size: 0.95rem;
-            color: #e2e8f0;
-            word-break: break-all;
-        }}
-
-        /* Summary cards */
-        .section-title {{
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #f8fafc;
-            margin-bottom: 1rem;
-        }}
-
+        /* Cards */
         .cards {{
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -424,9 +397,7 @@ def generate_report(
         }}
 
         /* Collapsible category sections */
-        .category-section {{
-            margin-bottom: 0.5rem;
-        }}
+        .category-section {{ margin-bottom: 0.5rem; }}
 
         .category-toggle {{
             width: 100%;
@@ -445,15 +416,9 @@ def generate_report(
             transition: background 0.2s;
         }}
 
-        .category-toggle:hover {{
-            background: #334155;
-        }}
+        .category-toggle:hover {{ background: #334155; }}
 
-        .toggle-left {{
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }}
+        .toggle-left {{ display: flex; align-items: center; gap: 0.5rem; }}
 
         .toggle-arrow {{
             display: inline-block;
@@ -462,9 +427,7 @@ def generate_report(
             color: #64748b;
         }}
 
-        .category-section.open .toggle-arrow {{
-            transform: rotate(90deg);
-        }}
+        .category-section.open .toggle-arrow {{ transform: rotate(90deg); }}
 
         .category-content {{
             max-height: 0;
@@ -472,15 +435,9 @@ def generate_report(
             transition: max-height 0.3s ease;
         }}
 
-        .category-section.open .category-content {{
-            max-height: 2000px;
-        }}
+        .category-section.open .category-content {{ max-height: 2000px; }}
 
-        .category-content table {{
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 0.25rem;
-        }}
+        .category-content table {{ width: 100%; border-collapse: collapse; margin-top: 0.25rem; }}
 
         .category-content th {{
             text-align: left;
@@ -492,16 +449,8 @@ def generate_report(
             border-bottom: 1px solid #1e293b;
         }}
 
-        .category-content td {{
-            padding: 0.6rem 1rem;
-            border-bottom: 1px solid #1e293b;
-            font-size: 0.85rem;
-        }}
-
-        .category-content tr:hover {{
-            background: #1e293b;
-        }}
-
+        .category-content td {{ padding: 0.6rem 1rem; border-bottom: 1px solid #1e293b; font-size: 0.85rem; }}
+        .category-content tr:hover {{ background: #1e293b; }}
         .row-num {{ color: #475569; width: 40px; }}
 
         .test-name code {{
@@ -518,42 +467,24 @@ def generate_report(
         .test-status {{ text-align: center; }}
 
         .status-pending {{
-            display: inline-block;
-            padding: 0.15rem 0.6rem;
-            border-radius: 50px;
-            font-size: 0.7rem;
-            font-weight: 500;
-            background: #1c1917;
-            color: #a8a29e;
+            display: inline-block; padding: 0.15rem 0.6rem; border-radius: 50px;
+            font-size: 0.7rem; font-weight: 500; background: #1c1917; color: #a8a29e;
         }}
 
         .status-pass {{
-            display: inline-block;
-            padding: 0.15rem 0.6rem;
-            border-radius: 50px;
-            font-size: 0.7rem;
-            font-weight: 500;
-            background: #052e16;
-            color: #22c55e;
+            display: inline-block; padding: 0.15rem 0.6rem; border-radius: 50px;
+            font-size: 0.7rem; font-weight: 500; background: #052e16; color: #22c55e;
         }}
 
         .status-fail {{
-            display: inline-block;
-            padding: 0.15rem 0.6rem;
-            border-radius: 50px;
-            font-size: 0.7rem;
-            font-weight: 500;
-            background: #450a0a;
-            color: #ef4444;
+            display: inline-block; padding: 0.15rem 0.6rem; border-radius: 50px;
+            font-size: 0.7rem; font-weight: 500; background: #450a0a; color: #ef4444;
         }}
 
         /* Badges */
         .badge {{
-            display: inline-block;
-            padding: 0.2rem 0.6rem;
-            border-radius: 50px;
-            font-size: 0.75rem;
-            font-weight: 500;
+            display: inline-block; padding: 0.2rem 0.6rem; border-radius: 50px;
+            font-size: 0.75rem; font-weight: 500;
         }}
 
         .badge-happy {{ background: #052e16; color: #22c55e; }}
@@ -565,25 +496,16 @@ def generate_report(
         .code-section {{ margin-bottom: 2.5rem; }}
 
         .code-toggle {{
-            background: #1e293b;
-            color: #94a3b8;
-            border: 1px solid #334155;
-            padding: 0.5rem 1.25rem;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            margin-bottom: 1rem;
-            display: inline-block;
+            background: #1e293b; color: #94a3b8; border: 1px solid #334155;
+            padding: 0.5rem 1.25rem; border-radius: 8px; cursor: pointer;
+            font-size: 0.9rem; margin-bottom: 1rem; display: inline-block;
         }}
 
         .code-toggle:hover {{ background: #334155; color: #e2e8f0; }}
 
         .code-block {{
-            background: #1e293b;
-            border-radius: 12px;
-            padding: 1.5rem;
-            overflow-x: auto;
-            display: none;
+            background: #1e293b; border-radius: 12px; padding: 1.5rem;
+            overflow-x: auto; display: none;
         }}
 
         .code-block.visible {{ display: block; }}
@@ -591,19 +513,13 @@ def generate_report(
         .code-block pre {{
             margin: 0;
             font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
-            line-height: 1.7;
-            color: #e2e8f0;
-            white-space: pre;
+            font-size: 0.8rem; line-height: 1.7; color: #e2e8f0; white-space: pre;
         }}
 
         /* Footer */
         .footer {{
-            text-align: center;
-            padding-top: 2rem;
-            border-top: 1px solid #1e293b;
-            color: #475569;
-            font-size: 0.8rem;
+            text-align: center; padding-top: 2rem;
+            border-top: 1px solid #1e293b; color: #475569; font-size: 0.8rem;
         }}
 
         .footer a {{ color: #38bdf8; text-decoration: none; }}
@@ -620,6 +536,8 @@ def generate_report(
             .meta {{ background: #f1f5f9; border: 1px solid #e2e8f0; }}
             .meta-label {{ color: #64748b; }}
             .meta-value {{ color: #0f172a; }}
+            .info-note {{ background: #f1f5f9; border-color: #e2e8f0; border-left-color: #2563eb; color: #64748b; }}
+            .info-note strong {{ color: #0f172a; }}
             .total-badge {{ background: #2563eb !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }}
             .card {{ background: #f1f5f9; border: 1px solid #e2e8f0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }}
             .card-count {{ color: #0f172a; }}
@@ -648,7 +566,7 @@ def generate_report(
 <body>
     <div class="container">
         <div class="header">
-            <h1>&#x1F916; <span>AI Test Case Generator</span> — Report</h1>
+            <h1>&#x1F916; <span>AI Test Case Generator</span> &mdash; Report</h1>
             <p class="subtitle">Auto-generated test coverage summary</p>
             <div class="header-actions">
                 <button class="btn btn-pdf" onclick="window.print()">&#x1F4C4; Export PDF</button>
@@ -689,6 +607,15 @@ def generate_report(
         </div>
 
         <h2 class="section-title">Test Case Breakdown</h2>
+        <div class="info-note">
+            <strong>&#x2139;&#xFE0F; Why is every status showing &ldquo;Pending&rdquo;?</strong><br>
+            This report shows test cases that were <strong>generated</strong>, not executed. The status column
+            will show &#x23F3;&nbsp;Pending until the tests are actually run against the target site using a test
+            runner like <code>pytest</code>. Automated pass/fail reporting &mdash; where results from a real test
+            run populate this column &mdash; is a planned feature that may be added in a future release if there
+            is enough demand for it. For now, you can run the generated tests yourself and compare the results
+            manually.
+        </div>
         <div class="category-sections">
             {collapsible_sections}
         </div>
@@ -733,7 +660,6 @@ def generate_report(
     with open(report_path, "w", encoding="utf-8") as f:
         f.write(html)
 
-    # Try to open in browser
     try:
         abs_path = os.path.abspath(report_path)
         webbrowser.open(f"file://{abs_path}")
