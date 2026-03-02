@@ -3,6 +3,13 @@
 Produces a polished, standalone HTML report showing generated test
 cases with syntax highlighting, category breakdowns, and metadata.
 Opens automatically in the default browser after generation.
+
+Features:
+- Category breakdown cards with test counts
+- Collapsible sections per category with individual tests
+- Pass/fail status column (pending until tests are executed)
+- Export to PDF button (uses browser print)
+- Full generated code in collapsible block
 """
 
 import os
@@ -25,7 +32,6 @@ def _count_tests_by_category(test_code: str, fmt: str) -> dict:
     }
 
     if fmt == "playwright":
-        # Count methods per class
         current_category = None
         for line in test_code.split("\n"):
             lower = line.lower()
@@ -82,7 +88,6 @@ def _extract_test_names(test_code: str, fmt: str) -> list[dict]:
                 if match:
                     name = match.group(1)
                     docstring = ""
-                    # Look for docstring on next line(s)
                     for j in range(i + 1, min(i + 3, len(lines))):
                         if '"""' in lines[j]:
                             docstring = lines[j].strip().strip('"""').strip('"')
@@ -94,13 +99,24 @@ def _extract_test_names(test_code: str, fmt: str) -> list[dict]:
                     })
 
     elif fmt == "gherkin":
+        current_tag = ""
         for line in test_code.split("\n"):
             stripped = line.strip()
-            if stripped.startswith("Scenario:") or stripped.startswith("Scenario Outline:"):
+            if stripped.startswith("@"):
+                tags = stripped.lower()
+                if "happy-path" in tags or "happy_path" in tags:
+                    current_tag = "HappyPath"
+                elif "negative" in tags:
+                    current_tag = "Negative"
+                elif "edge-case" in tags or "edge_case" in tags:
+                    current_tag = "EdgeCases"
+                elif "boundary" in tags:
+                    current_tag = "Boundary"
+            elif stripped.startswith("Scenario:") or stripped.startswith("Scenario Outline:"):
                 name = stripped.split(":", 1)[1].strip()
                 tests.append({
                     "name": name,
-                    "class": "Feature",
+                    "class": current_tag or "Feature",
                     "description": "",
                 })
 
@@ -108,7 +124,6 @@ def _extract_test_names(test_code: str, fmt: str) -> list[dict]:
 
 
 def _get_category_label(key: str) -> str:
-    """Convert category key to display label."""
     labels = {
         "happy_path": "Happy Path",
         "negative": "Negative",
@@ -119,7 +134,6 @@ def _get_category_label(key: str) -> str:
 
 
 def _get_category_color(key: str) -> str:
-    """Get the color for a category."""
     colors = {
         "happy_path": "#22c55e",
         "negative": "#ef4444",
@@ -130,7 +144,6 @@ def _get_category_color(key: str) -> str:
 
 
 def _get_category_icon(key: str) -> str:
-    """Get the emoji icon for a category."""
     icons = {
         "happy_path": "&#x2705;",
         "negative": "&#x274C;",
@@ -140,6 +153,20 @@ def _get_category_icon(key: str) -> str:
     return icons.get(key, "&#x1F4CB;")
 
 
+def _get_category_key_from_class(cls: str) -> str:
+    """Map a class name to a category key."""
+    lower = cls.lower()
+    if "happypath" in lower or "happy_path" in lower:
+        return "happy_path"
+    elif "negative" in lower:
+        return "negative"
+    elif "edgecase" in lower or "edge_case" in lower or "edge" in lower:
+        return "edge_cases"
+    elif "boundary" in lower:
+        return "boundary"
+    return "unknown"
+
+
 def generate_report(
     test_code: str,
     source: str,
@@ -147,18 +174,7 @@ def generate_report(
     provider: str,
     test_filepath: str,
 ) -> str:
-    """Generate an HTML report for the generated test cases.
-
-    Args:
-        test_code: The generated test code string.
-        source: URL or description used to generate tests.
-        format: 'playwright' or 'gherkin'.
-        provider: The LLM provider or 'demo'.
-        test_filepath: Path to the saved test file.
-
-    Returns:
-        Path to the generated HTML report.
-    """
+    """Generate an HTML report for the generated test cases."""
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     categories = _count_tests_by_category(test_code, format)
@@ -178,28 +194,75 @@ def generate_report(
                 <div class="card-bar" style="background: {_get_category_color(key)}; width: {max(count / max(total_tests, 1) * 100, 15):.0f}%"></div>
             </div>"""
 
-    # Build test list
-    test_rows = ""
-    for i, test in enumerate(tests, 1):
-        badge_class = "badge-happy"
-        cls_lower = test["class"].lower()
-        if "negative" in cls_lower:
-            badge_class = "badge-negative"
-        elif "edge" in cls_lower:
-            badge_class = "badge-edge"
-        elif "boundary" in cls_lower:
-            badge_class = "badge-boundary"
+    # Group tests by category for collapsible sections
+    grouped_tests: dict[str, list] = {}
+    for test in tests:
+        cat_key = _get_category_key_from_class(test["class"])
+        if cat_key not in grouped_tests:
+            grouped_tests[cat_key] = []
+        grouped_tests[cat_key].append(test)
 
-        category_name = test["class"].replace("Test", "").replace("_", " ")
-        desc = test["description"] or "—"
+    # Build collapsible category sections
+    category_order = ["happy_path", "negative", "edge_cases", "boundary"]
+    collapsible_sections = ""
+    global_index = 0
 
-        test_rows += f"""
-                <tr>
-                    <td class="row-num">{i}</td>
-                    <td class="test-name"><code>{escape(test['name'])}</code></td>
-                    <td><span class="badge {badge_class}">{escape(category_name)}</span></td>
-                    <td class="test-desc">{escape(desc)}</td>
-                </tr>"""
+    for cat_key in category_order:
+        if cat_key not in grouped_tests:
+            continue
+        cat_tests = grouped_tests[cat_key]
+        label = _get_category_label(cat_key)
+        color = _get_category_color(cat_key)
+        icon = _get_category_icon(cat_key)
+        count = len(cat_tests)
+
+        # Badge class
+        badge_map = {
+            "happy_path": "badge-happy",
+            "negative": "badge-negative",
+            "edge_cases": "badge-edge",
+            "boundary": "badge-boundary",
+        }
+        badge_class = badge_map.get(cat_key, "badge-happy")
+
+        # Build rows for this category
+        rows = ""
+        for test in cat_tests:
+            global_index += 1
+            desc = test["description"] or "—"
+            rows += f"""
+                    <tr>
+                        <td class="row-num">{global_index}</td>
+                        <td class="test-name"><code>{escape(test['name'])}</code></td>
+                        <td class="test-desc">{escape(desc)}</td>
+                        <td class="test-status"><span class="status-pending">&#x23F3; Pending</span></td>
+                    </tr>"""
+
+        collapsible_sections += f"""
+        <div class="category-section">
+            <button class="category-toggle" onclick="this.parentElement.classList.toggle('open')" style="border-left: 4px solid {color};">
+                <span class="toggle-left">
+                    <span class="toggle-arrow">&#x25B6;</span>
+                    <span>{icon} {label}</span>
+                    <span class="badge {badge_class}" style="margin-left: 0.5rem;">{count} test{"s" if count != 1 else ""}</span>
+                </span>
+            </button>
+            <div class="category-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:40px">#</th>
+                            <th>Test Name</th>
+                            <th>Description</th>
+                            <th style="width:110px">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {rows}
+                    </tbody>
+                </table>
+            </div>
+        </div>"""
 
     # Escape the code for HTML display
     escaped_code = escape(test_code)
@@ -248,6 +311,45 @@ def generate_report(
         .header .subtitle {{
             color: #94a3b8;
             font-size: 0.95rem;
+        }}
+
+        .header-actions {{
+            margin-top: 1rem;
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+        }}
+
+        .btn {{
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.5rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid #334155;
+            transition: all 0.2s;
+        }}
+
+        .btn-pdf {{
+            background: #1e293b;
+            color: #e2e8f0;
+        }}
+
+        .btn-pdf:hover {{
+            background: #334155;
+        }}
+
+        .btn-expand {{
+            background: #1e293b;
+            color: #94a3b8;
+        }}
+
+        .btn-expand:hover {{
+            background: #334155;
+            color: #e2e8f0;
         }}
 
         /* Meta info */
@@ -303,34 +405,13 @@ def generate_report(
             overflow: hidden;
         }}
 
-        .card-icon {{
-            font-size: 1.3rem;
-            margin-bottom: 0.5rem;
-        }}
-
-        .card-count {{
-            font-size: 2rem;
-            font-weight: 700;
-            color: #f8fafc;
-        }}
-
-        .card-label {{
-            font-size: 0.85rem;
-            color: #94a3b8;
-            margin-bottom: 0.75rem;
-        }}
-
-        .card-bar {{
-            height: 4px;
-            border-radius: 2px;
-            opacity: 0.8;
-        }}
+        .card-icon {{ font-size: 1.3rem; margin-bottom: 0.5rem; }}
+        .card-count {{ font-size: 2rem; font-weight: 700; color: #f8fafc; }}
+        .card-label {{ font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.75rem; }}
+        .card-bar {{ height: 4px; border-radius: 2px; opacity: 0.8; }}
 
         /* Total badge */
-        .total-banner {{
-            text-align: center;
-            margin-bottom: 2.5rem;
-        }}
+        .total-banner {{ text-align: center; margin-bottom: 2.5rem; }}
 
         .total-badge {{
             display: inline-block;
@@ -342,53 +423,128 @@ def generate_report(
             border-radius: 50px;
         }}
 
-        /* Test table */
-        .table-wrap {{
-            overflow-x: auto;
-            margin-bottom: 2.5rem;
+        /* Collapsible category sections */
+        .category-section {{
+            margin-bottom: 0.5rem;
         }}
 
-        table {{
+        .category-toggle {{
+            width: 100%;
+            text-align: left;
+            background: #1e293b;
+            color: #e2e8f0;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 0.85rem 1.25rem;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 0.2s;
+        }}
+
+        .category-toggle:hover {{
+            background: #334155;
+        }}
+
+        .toggle-left {{
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }}
+
+        .toggle-arrow {{
+            display: inline-block;
+            transition: transform 0.2s;
+            font-size: 0.7rem;
+            color: #64748b;
+        }}
+
+        .category-section.open .toggle-arrow {{
+            transform: rotate(90deg);
+        }}
+
+        .category-content {{
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }}
+
+        .category-section.open .category-content {{
+            max-height: 2000px;
+        }}
+
+        .category-content table {{
             width: 100%;
             border-collapse: collapse;
+            margin-top: 0.25rem;
         }}
 
-        th {{
+        .category-content th {{
             text-align: left;
-            padding: 0.75rem 1rem;
-            font-size: 0.75rem;
+            padding: 0.6rem 1rem;
+            font-size: 0.7rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
             color: #64748b;
             border-bottom: 1px solid #1e293b;
         }}
 
-        td {{
-            padding: 0.75rem 1rem;
+        .category-content td {{
+            padding: 0.6rem 1rem;
             border-bottom: 1px solid #1e293b;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }}
 
-        tr:hover {{
+        .category-content tr:hover {{
             background: #1e293b;
         }}
 
-        .row-num {{
-            color: #475569;
-            width: 40px;
-        }}
+        .row-num {{ color: #475569; width: 40px; }}
 
         .test-name code {{
-            background: #1e293b;
+            background: #0f172a;
             padding: 0.15rem 0.5rem;
             border-radius: 4px;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: #38bdf8;
         }}
 
-        .test-desc {{
-            color: #94a3b8;
-            font-size: 0.85rem;
+        .test-desc {{ color: #94a3b8; font-size: 0.8rem; }}
+
+        /* Status badges */
+        .test-status {{ text-align: center; }}
+
+        .status-pending {{
+            display: inline-block;
+            padding: 0.15rem 0.6rem;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            background: #1c1917;
+            color: #a8a29e;
+        }}
+
+        .status-pass {{
+            display: inline-block;
+            padding: 0.15rem 0.6rem;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            background: #052e16;
+            color: #22c55e;
+        }}
+
+        .status-fail {{
+            display: inline-block;
+            padding: 0.15rem 0.6rem;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            background: #450a0a;
+            color: #ef4444;
         }}
 
         /* Badges */
@@ -406,9 +562,7 @@ def generate_report(
         .badge-boundary {{ background: #172554; color: #3b82f6; }}
 
         /* Code block */
-        .code-section {{
-            margin-bottom: 2.5rem;
-        }}
+        .code-section {{ margin-bottom: 2.5rem; }}
 
         .code-toggle {{
             background: #1e293b;
@@ -422,10 +576,7 @@ def generate_report(
             display: inline-block;
         }}
 
-        .code-toggle:hover {{
-            background: #334155;
-            color: #e2e8f0;
-        }}
+        .code-toggle:hover {{ background: #334155; color: #e2e8f0; }}
 
         .code-block {{
             background: #1e293b;
@@ -435,9 +586,7 @@ def generate_report(
             display: none;
         }}
 
-        .code-block.visible {{
-            display: block;
-        }}
+        .code-block.visible {{ display: block; }}
 
         .code-block pre {{
             margin: 0;
@@ -457,9 +606,42 @@ def generate_report(
             font-size: 0.8rem;
         }}
 
-        .footer a {{
-            color: #38bdf8;
-            text-decoration: none;
+        .footer a {{ color: #38bdf8; text-decoration: none; }}
+
+        /* Print / PDF styles */
+        @media print {{
+            body {{ background: #fff; color: #1e293b; }}
+            .container {{ max-width: 100%; padding: 0; }}
+            .header {{ border-bottom-color: #e2e8f0; }}
+            .header h1 {{ color: #0f172a; }}
+            .header h1 span {{ color: #2563eb; }}
+            .header .subtitle {{ color: #64748b; }}
+            .header-actions {{ display: none; }}
+            .meta {{ background: #f1f5f9; border: 1px solid #e2e8f0; }}
+            .meta-label {{ color: #64748b; }}
+            .meta-value {{ color: #0f172a; }}
+            .total-badge {{ background: #2563eb !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }}
+            .card {{ background: #f1f5f9; border: 1px solid #e2e8f0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }}
+            .card-count {{ color: #0f172a; }}
+            .card-label {{ color: #64748b; }}
+            .card-bar {{ -webkit-print-color-adjust: exact; print-color-adjust: exact; }}
+            .category-toggle {{ background: #f1f5f9; border-color: #e2e8f0; color: #0f172a; }}
+            .category-content {{ max-height: none !important; overflow: visible !important; }}
+            .category-content th {{ color: #64748b; border-bottom-color: #e2e8f0; }}
+            .category-content td {{ border-bottom-color: #e2e8f0; color: #1e293b; }}
+            .test-name code {{ background: #f1f5f9; color: #2563eb; }}
+            .test-desc {{ color: #64748b; }}
+            .badge {{ -webkit-print-color-adjust: exact; print-color-adjust: exact; }}
+            .badge-happy {{ background: #dcfce7 !important; color: #166534 !important; }}
+            .badge-negative {{ background: #fee2e2 !important; color: #991b1b !important; }}
+            .badge-edge {{ background: #fef3c7 !important; color: #92400e !important; }}
+            .badge-boundary {{ background: #dbeafe !important; color: #1e40af !important; }}
+            .status-pending {{ background: #f1f5f9 !important; color: #64748b !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }}
+            .status-pass {{ background: #dcfce7 !important; color: #166534 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }}
+            .status-fail {{ background: #fee2e2 !important; color: #991b1b !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }}
+            .code-section {{ display: none; }}
+            .footer {{ border-top-color: #e2e8f0; color: #94a3b8; }}
+            .footer a {{ color: #2563eb; }}
         }}
     </style>
 </head>
@@ -468,6 +650,10 @@ def generate_report(
         <div class="header">
             <h1>&#x1F916; <span>AI Test Case Generator</span> — Report</h1>
             <p class="subtitle">Auto-generated test coverage summary</p>
+            <div class="header-actions">
+                <button class="btn btn-pdf" onclick="window.print()">&#x1F4C4; Export PDF</button>
+                <button class="btn btn-expand" onclick="toggleAll()">&#x1F4C2; Expand / Collapse All</button>
+            </div>
         </div>
 
         <div class="meta">
@@ -503,23 +689,11 @@ def generate_report(
         </div>
 
         <h2 class="section-title">Test Case Breakdown</h2>
-        <div class="table-wrap">
-            <table>
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Test Name</th>
-                        <th>Category</th>
-                        <th>Description</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {test_rows}
-                </tbody>
-            </table>
+        <div class="category-sections">
+            {collapsible_sections}
         </div>
 
-        <div class="code-section">
+        <div class="code-section" style="margin-top: 2.5rem;">
             <h2 class="section-title">Generated Code</h2>
             <button class="code-toggle" onclick="document.getElementById('codeBlock').classList.toggle('visible')">
                 &#x1F4CB; Show / Hide Code
@@ -533,6 +707,20 @@ def generate_report(
             <p>Generated by <a href="https://github.com/FaraazSuffla/ai-test-case-generator">AI Test Case Generator</a> &middot; {timestamp}</p>
         </div>
     </div>
+
+    <script>
+        function toggleAll() {{
+            const sections = document.querySelectorAll('.category-section');
+            const allOpen = Array.from(sections).every(s => s.classList.contains('open'));
+            sections.forEach(s => {{
+                if (allOpen) {{
+                    s.classList.remove('open');
+                }} else {{
+                    s.classList.add('open');
+                }}
+            }});
+        }}
+    </script>
 </body>
 </html>"""
 
@@ -550,6 +738,6 @@ def generate_report(
         abs_path = os.path.abspath(report_path)
         webbrowser.open(f"file://{abs_path}")
     except Exception:
-        pass  # Silently skip if no browser available
+        pass
 
     return report_path
