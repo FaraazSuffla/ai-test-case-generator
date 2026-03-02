@@ -108,9 +108,13 @@ py generate_tests.py --demo --url https://practicetestautomation.com/practice-te
 Opens a standalone HTML page in your browser with:
 
 - Total test count and category breakdown (happy path, negative, edge cases, boundary)
-- Full test case table with names, badges, and descriptions
-- Collapsible generated code block
+- Collapsible sections per category with individual test details
+- Pass/fail status column (currently shows "Pending" — see note below)
+- Export to PDF button
+- Full generated code in a collapsible block
 - Dark theme, no external dependencies
+
+> **Note on status column:** The report shows tests that were *generated*, not executed. All statuses display as "Pending" because the tool generates test code — it doesn't run them. See the [Roadmap](#roadmap) for planned improvements.
 
 If it doesn't auto-open, run `start output/report_*.html` (Windows) or `open output/report_*.html` (macOS).
 
@@ -201,6 +205,23 @@ py generate_tests.py --costs
 ```
 
 Shows total requests, token counts, estimated cost, and per-provider breakdown.
+
+---
+
+## Roadmap
+
+These features may be added in future releases if there is enough demand:
+
+- [ ] **Automated pass/fail reporting** — Run generated tests via pytest and populate the report's status column with real pass/fail results
+- [ ] **conftest.py generator** — Auto-generate Playwright fixtures so tests are runnable out of the box
+- [ ] **Cypress test generation** — Support Cypress as an output format alongside Playwright and Gherkin
+- [ ] **Batch URL processing** — Generate tests for multiple pages in a single run
+- [ ] **Visual regression tests** — Generate screenshot comparison tests
+- [ ] **CI/CD integration** — GitHub Actions workflow to run generated tests automatically
+- [ ] **Custom prompt templates** — Let users define their own test generation prompts
+- [ ] **Jira / Azure DevOps import** — Export generated test cases directly to test management tools
+
+Have a feature request? [Open an issue](https://github.com/FaraazSuffla/ai-test-case-generator/issues) or give this repo a ⭐ to show interest.
 
 ---
 
