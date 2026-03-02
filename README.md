@@ -19,9 +19,22 @@ Manual test case writing is time-consuming and often misses edge cases. This too
 ```bash
 git clone https://github.com/FaraazSuffla/ai-test-case-generator.git
 cd ai-test-case-generator
+```
+
+**For demo mode** (lightweight — no API key needed):
+
+```bash
+pip install click rich python-dotenv beautifulsoup4 requests
+```
+
+**For full mode** (includes Playwright and AI providers):
+
+```bash
 pip install -r requirements.txt
 playwright install chromium
 ```
+
+> **Windows note:** If you see `ModuleNotFoundError`, use `py -m pip install` instead of `pip install` to ensure packages install to the correct Python location.
 
 ### Try It Instantly (No API Key Needed)
 
@@ -29,16 +42,35 @@ The `--demo` flag lets you run the full tool using built-in templates — no API
 
 ```bash
 # Generate Playwright tests in demo mode
-python generate_tests.py --demo --url https://example.com/login --format playwright
+py generate_tests.py --demo --url https://example.com/login --format playwright
 
 # Generate Gherkin feature file in demo mode
-python generate_tests.py --demo --describe "User registration with email and password" --format gherkin
+py generate_tests.py --demo --describe "User registration with email and password" --format gherkin
 
 # Try different features — the tool detects login vs registration automatically
-python generate_tests.py --demo --describe "sign up page" --format playwright
+py generate_tests.py --demo --describe "sign up page" --format playwright
 ```
 
 Demo mode produces the same structured output as the real AI — it's perfect for seeing the tool in action, understanding the output format, or demonstrating the project in interviews.
+
+### Check the Output
+
+Generated files are saved to the `output/` directory:
+
+```bash
+# View the generated test file
+cat output/test_example_com_login_playwright.py
+
+# List all generated files
+ls output/
+```
+
+```
+output/
+├── test_example_com_login_playwright.py
+├── example_com_login.feature
+└── test_sign_up_page_playwright.py
+```
 
 ### Full Mode (With API Key)
 
@@ -51,33 +83,22 @@ export ANTHROPIC_API_KEY="your-key-here"
 export OPENAI_API_KEY="your-key-here"
 
 # Generate Playwright tests from a URL
-python generate_tests.py --url https://example.com/login --format playwright
+py generate_tests.py --url https://example.com/login --format playwright
 
 # Generate Gherkin feature files from a URL
-python generate_tests.py --url https://example.com/login --format gherkin
+py generate_tests.py --url https://example.com/login --format gherkin
 
 # Generate tests from a feature description
-python generate_tests.py --describe "User registration with email and password" --format playwright
+py generate_tests.py --describe "User registration with email and password" --format playwright
 
 # Use OpenAI instead of Claude
-python generate_tests.py --url https://example.com --format gherkin --provider openai
+py generate_tests.py --url https://example.com --format gherkin --provider openai
 
 # Analyze page accessibility tree for context-aware tests
-python generate_tests.py --url https://example.com/login --format playwright --analyze
+py generate_tests.py --url https://example.com/login --format playwright --analyze
 
 # View API cost summary
-python generate_tests.py --costs
-```
-
-### Output
-
-Generated files are saved to the `output/` directory:
-
-```
-output/
-├── test_login_playwright.py
-├── login.feature
-└── test_registration_playwright.py
+py generate_tests.py --costs
 ```
 
 ## CLI Options
@@ -249,7 +270,7 @@ ai-test-case-generator/
 Every API call is logged with token usage and estimated cost:
 
 ```bash
-$ python generate_tests.py --costs
+$ py generate_tests.py --costs
 
 ╭──────────────────── API Cost Summary ────────────────────╮
 │ Total requests:    47                                    │
