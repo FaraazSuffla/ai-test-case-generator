@@ -24,17 +24,17 @@ cd ai-test-case-generator
 **For demo mode** (lightweight — no API key needed):
 
 ```bash
-pip install click rich python-dotenv beautifulsoup4 requests
+py -m pip install click rich python-dotenv beautifulsoup4 requests
 ```
 
 **For full mode** (includes Playwright and AI providers):
 
 ```bash
-pip install -r requirements.txt
+py -m pip install -r requirements.txt
 playwright install chromium
 ```
 
-> **Windows note:** If you see `ModuleNotFoundError`, use `py -m pip install` instead of `pip install` to ensure packages install to the correct Python location.
+> **Windows note:** Use `py -m pip install` instead of `pip install` to avoid `ModuleNotFoundError` issues.
 
 ### Try It Instantly (No API Key Needed)
 
@@ -50,7 +50,7 @@ py generate_tests.py --demo --describe "User registration with email and passwor
 # Try different features — the tool detects login vs registration automatically
 py generate_tests.py --demo --describe "sign up page" --format playwright
 
-# Generate tests with an HTML coverage report
+# Generate tests WITH an HTML coverage report (opens in browser)
 py generate_tests.py --demo --url https://example.com/login --format playwright --report
 ```
 
@@ -61,11 +61,20 @@ Demo mode produces the same structured output as the real AI — it's perfect fo
 Generated files are saved to the `output/` directory:
 
 ```bash
-# View the generated test file
-cat output/test_example_com_login_playwright.py
-
 # List all generated files
 ls output/
+
+# View a generated test file
+cat output/test_example_com_login_playwright.py
+
+# Open the HTML report in your browser (Windows)
+start output/report_https___example_com_login.html
+
+# Open the HTML report (macOS)
+open output/report_https___example_com_login.html
+
+# Open the HTML report (Linux)
+xdg-open output/report_https___example_com_login.html
 ```
 
 ```
@@ -124,10 +133,14 @@ py generate_tests.py --costs
 
 ## HTML Coverage Report
 
-Add `--report` to any command to generate a visual HTML report that auto-opens in your browser:
+Add `--report` to any command to generate a visual HTML report:
 
 ```bash
+# Step 1: Generate tests with report
 py generate_tests.py --demo --url https://example.com/login --format playwright --report
+
+# Step 2: Open the report in your browser (Windows)
+start output/report_https___example_com_login.html
 ```
 
 The report includes:
@@ -138,7 +151,7 @@ The report includes:
 - **Full generated code** — collapsible code block with the complete test file
 - **Dark theme** — responsive, self-contained HTML with no external dependencies
 
-The report is saved to `output/report_*.html` and opens automatically in your default browser.
+The report auto-opens in your default browser on generation. If it doesn't, open it manually with `start output/report_*.html` (Windows) or `open output/report_*.html` (macOS).
 
 ## Example: AI-Generated vs Hand-Written Tests
 
