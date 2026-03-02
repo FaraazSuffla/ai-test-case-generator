@@ -6,6 +6,7 @@ Usage:
     python generate_tests.py --describe "User registration" --format gherkin
     python generate_tests.py --url https://example.com --format playwright --analyze
     python generate_tests.py --demo --describe "login page" --format playwright
+    python generate_tests.py --demo --url https://example.com/login --format playwright --report
     python generate_tests.py --costs
 """
 
@@ -72,6 +73,12 @@ BANNER = """
     help="Run in demo mode using built-in templates (no API key needed).",
 )
 @click.option(
+    "--report",
+    is_flag=True,
+    default=False,
+    help="Generate an HTML report alongside test files.",
+)
+@click.option(
     "--costs",
     is_flag=True,
     default=False,
@@ -85,6 +92,7 @@ def main(
     model: str,
     analyze: bool,
     demo: bool,
+    report: bool,
     costs: bool,
 ) -> None:
     """Generate AI-powered test cases from URLs or feature descriptions."""
@@ -156,20 +164,42 @@ def main(
             sys.exit(1)
 
     # Save output
+    active_provider = provider if not demo else "demo"
     if output_format == "playwright":
-        filepath = save_playwright_tests(test_code, source, provider if not demo else "demo")
+        filepath = save_playwright_tests(test_code, source, active_provider)
     else:
-        filepath = save_gherkin_tests(test_code, source, provider if not demo else "demo")
+        filepath = save_gherkin_tests(test_code, source, active_provider)
+
+    # Generate HTML report if requested
+    report_path = None
+    if report:
+        from src.report import generate_report
+        report_path = generate_report(
+            test_code=test_code,
+            source=source,
+            format=output_format,
+            provider=active_provider,
+            test_filepath=filepath,
+        )
+        console.print(f"[green]✓[/green] Report: [bold]{report_path}[/bold]")
 
     # Final summary
     mode_label = " (demo)" if demo else ""
+    summary_lines = [
+        f"[green]✓ Tests generated successfully!{mode_label}[/green]\n",
+        f"File:     [bold]{filepath}[/bold]",
+        f"Format:   {output_format}",
+        f"Provider: {'demo (built-in templates)' if demo else provider}",
+    ]
+    if report_path:
+        summary_lines.append(f"Report:   [bold]{report_path}[/bold]")
+    summary_lines.append(
+        f"\nRun with: [dim]{'pytest ' + filepath + ' -v' if output_format == 'playwright' else 'behave ' + filepath}[/dim]"
+    )
+
     console.print(
         Panel(
-            f"[green]✓ Tests generated successfully!{mode_label}[/green]\n\n"
-            f"File: [bold]{filepath}[/bold]\n"
-            f"Format: {output_format}\n"
-            f"Provider: {'demo (built-in templates)' if demo else provider}\n\n"
-            f"Run with: [dim]{'pytest ' + filepath + ' -v' if output_format == 'playwright' else 'behave ' + filepath}[/dim]",
+            "\n".join(summary_lines),
             title="✨ Complete",
             border_style="green",
             width=60,
