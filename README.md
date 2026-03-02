@@ -38,23 +38,32 @@ playwright install chromium
 
 ### Try It Instantly (No API Key Needed)
 
-The `--demo` flag lets you run the full tool using built-in templates — no API key or spending required:
+The `--demo` flag generates tests using built-in templates — no API key required. Demo mode targets [Practice Test Automation](https://practicetestautomation.com/practice-test-login/) by default, a real login page with known credentials (`student` / `Password123`):
 
 ```bash
-# Generate Playwright tests in demo mode
-py generate_tests.py --demo --url https://example.com/login --format playwright
+# Generate 18 Playwright tests for the Practice Test Automation login page
+py generate_tests.py --demo --url https://practicetestautomation.com/practice-test-login/ --format playwright
 
-# Generate Gherkin feature file in demo mode
-py generate_tests.py --demo --describe "User registration with email and password" --format gherkin
+# Generate 16 Gherkin scenarios for the same page
+py generate_tests.py --demo --url https://practicetestautomation.com/practice-test-login/ --format gherkin
 
-# Try different features — the tool detects login vs registration automatically
-py generate_tests.py --demo --describe "sign up page" --format playwright
+# Or just run with no URL — defaults to the Practice Test Automation site
+py generate_tests.py --demo --format playwright
 
 # Generate tests WITH an HTML coverage report (opens in browser)
-py generate_tests.py --demo --url https://example.com/login --format playwright --report
+py generate_tests.py --demo --url https://practicetestautomation.com/practice-test-login/ --format playwright --report
+
+# Generate registration tests from a description
+py generate_tests.py --demo --describe "User registration with email and password" --format gherkin
 ```
 
-Demo mode produces the same structured output as the real AI — it's perfect for seeing the tool in action, understanding the output format, or demonstrating the project in interviews.
+The demo tests use the **actual selectors** (`#username`, `#password`, `#submit`, `#error`) and **real error messages** from the site, so you can install Playwright and run them for real:
+
+```bash
+py -m pip install playwright
+playwright install chromium
+pytest output/test_practicetestautomation_com_practice_test_login_playwright.py -v
+```
 
 ### Check the Output
 
@@ -65,24 +74,23 @@ Generated files are saved to the `output/` directory:
 ls output/
 
 # View a generated test file
-cat output/test_example_com_login_playwright.py
+cat output/test_practicetestautomation_com_practice_test_login_playwright.py
 
 # Open the HTML report in your browser (Windows)
-start output/report_https___example_com_login.html
+start output/report_practicetestautomation_com_practice_test_login.html
 
 # Open the HTML report (macOS)
-open output/report_https___example_com_login.html
+open output/report_practicetestautomation_com_practice_test_login.html
 
 # Open the HTML report (Linux)
-xdg-open output/report_https___example_com_login.html
+xdg-open output/report_practicetestautomation_com_practice_test_login.html
 ```
 
 ```
 output/
-├── test_example_com_login_playwright.py
-├── example_com_login.feature
-├── test_sign_up_page_playwright.py
-└── report_https___example_com_login.html   ← HTML report (with --report flag)
+├── test_practicetestautomation_com_practice_test_login_playwright.py
+├── practicetestautomation_com_practice_test_login.feature
+└── report_practicetestautomation_com_practice_test_login.html   ← HTML report
 ```
 
 ### Full Mode (With API Key)
@@ -96,22 +104,22 @@ export ANTHROPIC_API_KEY="your-key-here"
 export OPENAI_API_KEY="your-key-here"
 
 # Generate Playwright tests from a URL
-py generate_tests.py --url https://example.com/login --format playwright
+py generate_tests.py --url https://practicetestautomation.com/practice-test-login/ --format playwright
 
 # Generate Gherkin feature files from a URL
-py generate_tests.py --url https://example.com/login --format gherkin
+py generate_tests.py --url https://practicetestautomation.com/practice-test-login/ --format gherkin
 
 # Generate tests from a feature description
-py generate_tests.py --describe "User registration with email and password" --format playwright
+py generate_tests.py --describe "Shopping cart checkout with coupon codes" --format playwright
 
 # Use OpenAI instead of Claude
-py generate_tests.py --url https://example.com --format gherkin --provider openai
+py generate_tests.py --url https://practicetestautomation.com/practice-test-login/ --format gherkin --provider openai
 
 # Analyze page accessibility tree for context-aware tests
-py generate_tests.py --url https://example.com/login --format playwright --analyze
+py generate_tests.py --url https://practicetestautomation.com/practice-test-login/ --format playwright --analyze
 
 # Generate tests with an HTML coverage report
-py generate_tests.py --url https://example.com/login --format playwright --report
+py generate_tests.py --url https://practicetestautomation.com/practice-test-login/ --format playwright --report
 
 # View API cost summary
 py generate_tests.py --costs
@@ -137,10 +145,10 @@ Add `--report` to any command to generate a visual HTML report:
 
 ```bash
 # Step 1: Generate tests with report
-py generate_tests.py --demo --url https://example.com/login --format playwright --report
+py generate_tests.py --demo --url https://practicetestautomation.com/practice-test-login/ --format playwright --report
 
 # Step 2: Open the report in your browser (Windows)
-start output/report_https___example_com_login.html
+start output/report_practicetestautomation_com_practice_test_login.html
 ```
 
 The report includes:
@@ -153,6 +161,19 @@ The report includes:
 
 The report auto-opens in your default browser on generation. If it doesn't, open it manually with `start output/report_*.html` (Windows) or `open output/report_*.html` (macOS).
 
+## Demo Test Coverage
+
+The demo mode generates **18 Playwright tests** (or **16 Gherkin scenarios**) against the Practice Test Automation login page, covering:
+
+| Category | Tests | What's Covered |
+|----------|-------|----------------|
+| **Happy Path** | 4 | Valid login, success message, logout button, logout flow |
+| **Negative** | 5 | Invalid username, invalid password, empty fields (username, password, both) |
+| **Edge Cases** | 5 | SQL injection, XSS payload, case-sensitive username, case-sensitive password, whitespace handling |
+| **Boundary** | 4 | Very long username, very long password, single character username, special characters |
+
+All tests use the site's actual selectors and error messages, so they're **runnable** with Playwright — not just stubs.
+
 ## Example: AI-Generated vs Hand-Written Tests
 
 ### Hand-Written Login Test (typical junior approach)
@@ -164,11 +185,11 @@ def test_login():
     with sync_playwright() as p:
         browser = p.chromium.launch()
         page = browser.new_page()
-        page.goto("https://example.com/login")
-        page.fill("#email", "user@test.com")
-        page.fill("#password", "password123")
+        page.goto("https://practicetestautomation.com/practice-test-login/")
+        page.fill("#username", "student")
+        page.fill("#password", "Password123")
         page.click("#submit")
-        assert page.url == "https://example.com/dashboard"
+        assert "logged-in-successfully" in page.url
         browser.close()
 ```
 
@@ -181,105 +202,108 @@ import pytest
 from playwright.sync_api import Page, expect
 
 
+BASE_URL = "https://practicetestautomation.com/practice-test-login/"
+
+
 class TestLoginHappyPath:
     """Happy path tests for login functionality."""
 
-    def test_login_with_valid_credentials(self, page: Page):
-        """Verify user can log in with valid email and password."""
-        page.goto("https://example.com/login")
-        page.get_by_label("Email").fill("user@test.com")
-        page.get_by_label("Password").fill("ValidPass123!")
-        page.get_by_role("button", name="Sign In").click()
-        expect(page).to_have_url("https://example.com/dashboard")
+    def test_successful_login_with_valid_credentials(self, page: Page):
+        """Verify user can log in with valid username and password."""
+        page.goto(BASE_URL)
+        page.locator("#username").fill("student")
+        page.locator("#password").fill("Password123")
+        page.locator("#submit").click()
+        expect(page).to_have_url_matching(".*logged-in-successfully.*")
 
-    def test_login_redirects_to_original_page(self, page: Page):
-        """Verify user is redirected to the page they came from after login."""
-        page.goto("https://example.com/settings")
-        page.get_by_label("Email").fill("user@test.com")
-        page.get_by_label("Password").fill("ValidPass123!")
-        page.get_by_role("button", name="Sign In").click()
-        expect(page).to_have_url("https://example.com/settings")
+    def test_successful_login_shows_congratulations(self, page: Page):
+        """Verify logged-in page contains success message."""
+        page.goto(BASE_URL)
+        page.locator("#username").fill("student")
+        page.locator("#password").fill("Password123")
+        page.locator("#submit").click()
+        expect(page.locator(".post-title")).to_contain_text("Logged In Successfully")
+
+    def test_successful_login_displays_logout_button(self, page: Page):
+        """Verify Log out button is visible after successful login."""
+        page.goto(BASE_URL)
+        page.locator("#username").fill("student")
+        page.locator("#password").fill("Password123")
+        page.locator("#submit").click()
+        expect(page.get_by_role("link", name="Log out")).to_be_visible()
 
 
 class TestLoginNegative:
     """Negative tests for login functionality."""
 
+    def test_login_with_invalid_username(self, page: Page):
+        """Verify error message when username is incorrect."""
+        page.goto(BASE_URL)
+        page.locator("#username").fill("incorrectUser")
+        page.locator("#password").fill("Password123")
+        page.locator("#submit").click()
+        expect(page.locator("#error")).to_be_visible()
+        expect(page.locator("#error")).to_contain_text("Your username is invalid!")
+
     def test_login_with_invalid_password(self, page: Page):
         """Verify error message when password is incorrect."""
-        page.goto("https://example.com/login")
-        page.get_by_label("Email").fill("user@test.com")
-        page.get_by_label("Password").fill("wrongpassword")
-        page.get_by_role("button", name="Sign In").click()
-        expect(page.get_by_text("Invalid credentials")).to_be_visible()
+        page.goto(BASE_URL)
+        page.locator("#username").fill("student")
+        page.locator("#password").fill("incorrectPassword")
+        page.locator("#submit").click()
+        expect(page.locator("#error")).to_be_visible()
+        expect(page.locator("#error")).to_contain_text("Your password is invalid!")
 
-    def test_login_with_unregistered_email(self, page: Page):
-        """Verify error when email is not registered."""
-        page.goto("https://example.com/login")
-        page.get_by_label("Email").fill("nobody@test.com")
-        page.get_by_label("Password").fill("SomePass123!")
-        page.get_by_role("button", name="Sign In").click()
-        expect(page.get_by_text("Invalid credentials")).to_be_visible()
-
-    def test_login_with_empty_fields(self, page: Page):
-        """Verify form validation when fields are empty."""
-        page.goto("https://example.com/login")
-        page.get_by_role("button", name="Sign In").click()
-        expect(page.get_by_text("Email is required")).to_be_visible()
+    def test_login_with_both_fields_empty(self, page: Page):
+        """Verify error when both fields are empty."""
+        page.goto(BASE_URL)
+        page.locator("#submit").click()
+        expect(page.locator("#error")).to_be_visible()
 
 
 class TestLoginEdgeCases:
     """Edge case tests for login functionality."""
 
-    def test_login_with_sql_injection_attempt(self, page: Page):
-        """Verify login is safe from SQL injection."""
-        page.goto("https://example.com/login")
-        page.get_by_label("Email").fill("' OR 1=1 --")
-        page.get_by_label("Password").fill("anything")
-        page.get_by_role("button", name="Sign In").click()
-        expect(page).to_have_url("https://example.com/login")
+    def test_login_with_sql_injection_in_username(self, page: Page):
+        """Verify login is safe from SQL injection in username."""
+        page.goto(BASE_URL)
+        page.locator("#username").fill("' OR 1=1 --")
+        page.locator("#password").fill("anything")
+        page.locator("#submit").click()
+        expect(page.locator("#error")).to_be_visible()
 
-    def test_login_with_xss_attempt(self, page: Page):
-        """Verify login sanitises XSS payloads."""
-        page.goto("https://example.com/login")
-        page.get_by_label("Email").fill("<script>alert('xss')</script>")
-        page.get_by_label("Password").fill("test")
-        page.get_by_role("button", name="Sign In").click()
-        expect(page.locator("script")).to_have_count(0)
-
-    def test_rapid_login_attempts_rate_limited(self, page: Page):
-        """Verify brute force protection after multiple failed attempts."""
-        page.goto("https://example.com/login")
-        for _ in range(6):
-            page.get_by_label("Email").fill("user@test.com")
-            page.get_by_label("Password").fill("wrong")
-            page.get_by_role("button", name="Sign In").click()
-        expect(page.get_by_text("Too many attempts")).to_be_visible()
+    def test_login_with_case_sensitive_username(self, page: Page):
+        """Verify username is case-sensitive (Student != student)."""
+        page.goto(BASE_URL)
+        page.locator("#username").fill("Student")
+        page.locator("#password").fill("Password123")
+        page.locator("#submit").click()
+        expect(page.locator("#error")).to_be_visible()
 
 
 class TestLoginBoundary:
     """Boundary value tests for login functionality."""
 
-    def test_login_with_max_length_email(self, page: Page):
-        """Verify login handles maximum length email (254 chars)."""
-        long_email = "a" * 243 + "@test.com"  # 254 chars total
-        page.goto("https://example.com/login")
-        page.get_by_label("Email").fill(long_email)
-        page.get_by_label("Password").fill("ValidPass123!")
-        page.get_by_role("button", name="Sign In").click()
-        expect(page.get_by_text("Invalid credentials")).to_be_visible()
+    def test_login_with_very_long_username(self, page: Page):
+        """Verify system handles extremely long username input."""
+        page.goto(BASE_URL)
+        page.locator("#username").fill("a" * 500)
+        page.locator("#password").fill("Password123")
+        page.locator("#submit").click()
+        expect(page.locator("#error")).to_be_visible()
 
-    def test_login_with_minimum_password(self, page: Page):
-        """Verify login with minimum acceptable password length."""
-        page.goto("https://example.com/login")
-        page.get_by_label("Email").fill("user@test.com")
-        page.get_by_label("Password").fill("Ab1!")
-        page.get_by_role("button", name="Sign In").click()
-        expect(page.get_by_text("Password too short")).to_be_visible()
+    def test_login_with_special_characters_in_username(self, page: Page):
+        """Verify system handles special characters in username."""
+        page.goto(BASE_URL)
+        page.locator("#username").fill("!@#$%^&*()")
+        page.locator("#password").fill("Password123")
+        page.locator("#submit").click()
+        expect(page.locator("#error")).to_be_visible()
 ```
 
-**Coverage: 10 tests across 4 categories — happy path, negative, edge cases, and boundary values.**
+**Coverage: 18 tests across 4 categories — happy path, negative, edge cases, and boundary values.**
 
-The AI-generated tests use modern Playwright best practices (role-based selectors, `expect` assertions), cover security concerns (SQL injection, XSS, rate limiting), and test boundary values that manual testing often misses.
+The AI-generated tests use the **actual page selectors** (`#username`, `#password`, `#submit`, `#error`), verify the **real error messages** ("Your username is invalid!", "Your password is invalid!"), and cover security concerns (SQL injection, XSS), case sensitivity, and boundary values.
 
 ## Project Structure
 
