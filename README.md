@@ -49,6 +49,9 @@ py generate_tests.py --demo --describe "User registration with email and passwor
 
 # Try different features — the tool detects login vs registration automatically
 py generate_tests.py --demo --describe "sign up page" --format playwright
+
+# Generate tests with an HTML coverage report
+py generate_tests.py --demo --url https://example.com/login --format playwright --report
 ```
 
 Demo mode produces the same structured output as the real AI — it's perfect for seeing the tool in action, understanding the output format, or demonstrating the project in interviews.
@@ -69,7 +72,8 @@ ls output/
 output/
 ├── test_example_com_login_playwright.py
 ├── example_com_login.feature
-└── test_sign_up_page_playwright.py
+├── test_sign_up_page_playwright.py
+└── report_example_com_login.html        ← HTML report (with --report flag)
 ```
 
 ### Full Mode (With API Key)
@@ -97,6 +101,9 @@ py generate_tests.py --url https://example.com --format gherkin --provider opena
 # Analyze page accessibility tree for context-aware tests
 py generate_tests.py --url https://example.com/login --format playwright --analyze
 
+# Generate tests with an HTML coverage report
+py generate_tests.py --url https://example.com/login --format playwright --report
+
 # View API cost summary
 py generate_tests.py --costs
 ```
@@ -112,7 +119,26 @@ py generate_tests.py --costs
 | `--model` | Specific model to use (overrides provider default) |
 | `--analyze` | Extract page accessibility tree for context-aware tests |
 | `--demo` | Run with built-in templates — no API key needed |
+| `--report` | Generate an HTML coverage report alongside test files |
 | `--costs` | Display API usage cost summary |
+
+## HTML Coverage Report
+
+Add `--report` to any command to generate a visual HTML report:
+
+```bash
+py generate_tests.py --demo --url https://example.com/login --format playwright --report
+```
+
+The report includes:
+
+- **Test metadata** — source URL, format, provider, timestamp
+- **Coverage stats** — total test count and category breakdown
+- **Category cards** — tests grouped by happy path, negative, edge case, and boundary with progress bars
+- **Full generated code** — the complete test file in a scrollable code block
+- **Dark theme** — responsive design, self-contained with no external dependencies
+
+Open the generated `output/report_*.html` file in any browser to view it.
 
 ## Example: AI-Generated vs Hand-Written Tests
 
@@ -252,13 +278,14 @@ ai-test-case-generator/
 │   ├── analyzer.py            # Page analysis & accessibility tree extraction
 │   ├── generator.py           # LLM integration (Claude + OpenAI)
 │   ├── demo_templates.py      # Built-in templates for --demo mode
+│   ├── report.py              # HTML coverage report generator
 │   ├── formatters/
 │   │   ├── __init__.py
 │   │   ├── playwright_fmt.py  # Playwright test stub formatter
 │   │   └── gherkin_fmt.py     # Gherkin .feature file formatter
 │   ├── cost_tracker.py        # API usage and cost tracking
 │   └── prompts.py             # Prompt templates for test generation
-├── output/                    # Generated test files
+├── output/                    # Generated test files & reports
 ├── examples/                  # Example outputs
 ├── requirements.txt
 ├── .env.example
