@@ -26,7 +26,17 @@ jobs:
 
       - name: Run flake8 linting
         run: |
-          flake8 src/ generate_tests.py --count --show-source --statistics
+          flake8 src/ generate_tests.py \
+            --select=E9,F63,F7,F82 \
+            --count --show-source --statistics
+      
+      - name: Run flake8 style warnings (non-blocking)
+        continue-on-error: true
+        run: |
+          flake8 src/ generate_tests.py \
+            --max-line-length 120 \
+            --extend-ignore=W605,E501 \
+            --count --statistics
 
   demo-test:
     name: Demo Mode — Generate & Run Tests

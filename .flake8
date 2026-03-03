@@ -6,17 +6,8 @@ exclude =
     output/,
     examples/,
     .github/
-extend-ignore =
-    # W605: invalid escape sequence — triggered by test template strings
-    #       containing SQL injection (\') and XSS payloads (<script>)
-    #       These are intentional literal strings in demo_templates.py
-    #       and conftest_generator.py template content.
-    W605,
-    # E501: handled by max-line-length above, but some template strings
-    #       legitimately exceed it — ignore in per-file overrides below
-    E501
+extend-ignore = E501,W605
 per-file-ignores =
-    # Template files contain long string literals and escape sequences
     src/demo_templates.py: E501,W605
     src/conftest_generator.py: E501,W605
     src/report.py: E501,W605
