@@ -24,6 +24,14 @@ jobs:
           pip install -r requirements.txt
           pip install flake8
 
+      - name: Verify flake8 config
+        run: |
+          echo "=== .flake8 config ==="
+          cat .flake8
+          echo ""
+          echo "=== flake8 version ==="
+          flake8 --version
+
       - name: Run flake8 linting
         run: |
           flake8 src/ generate_tests.py --count --show-source --statistics
