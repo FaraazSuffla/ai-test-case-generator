@@ -8,38 +8,44 @@ Generate structured **Playwright** or **Gherkin** test cases from any URL or fea
 
 ## How It Works
 
-```
-CLI Command
-    │
-    ▼
-Click parses flags (--url, --format, --demo, etc.)
-    │
-    ├── Demo mode? → Use built-in templates (no API needed)
-    │
-    ├── URL provided? → Playwright loads the page
-    │                       │
-    │                       ▼
-    │                  BeautifulSoup extracts forms, inputs, buttons
-    │                       │
-    │                       ▼
-    │                  Accessibility tree extracted (if --analyze)
-    │
-    ▼
-Page context + format template → structured LLM prompt
-    │
-    ▼
-Claude or OpenAI generates test code
-    │
-    ▼
-Response cleaned (markdown fences stripped, imports verified)
-    │
-    ├── Playwright → .py test file saved to output/
-    │       └── conftest.py auto-generated with browser fixtures
-    │
-    └── Gherkin → .feature file saved to output/
-    │
-    ▼
-Optional: HTML coverage report generated (--report)
+```mermaid
+flowchart TD
+    A["🖥️ CLI Command"] --> B{"Demo mode?"}
+    
+    B -->|Yes| C["📦 Built-in Templates\n(no API key needed)"]
+    B -->|No| D{"URL or Description?"}
+    
+    D -->|URL| E["🔍 Playwright\nLoads Page"]
+    D -->|Description| G["📝 Feature Text"]
+    
+    E --> F["🧹 BeautifulSoup\nExtracts forms, inputs, buttons"]
+    F --> F2{"--analyze?"}
+    F2 -->|Yes| F3["♿ Accessibility Tree"]
+    F2 -->|No| H
+    F3 --> H
+    
+    G --> H["🧠 Structured LLM Prompt\n(page context + format template)"]
+    
+    H --> I{"Provider"}
+    I -->|Anthropic| J["Claude API"]
+    I -->|OpenAI| K["OpenAI API"]
+    
+    J --> L["🧹 Clean Response\n(strip fences, verify imports)"]
+    K --> L
+    C --> M
+    
+    L --> M{"Output Format"}
+    M -->|Playwright| N["🐍 .py test file"]
+    M -->|Gherkin| O["🥒 .feature file"]
+    
+    N --> P["⚙️ conftest.py\n(browser fixtures)"]
+    
+    N --> Q{"--report?"}
+    O --> Q
+    P --> Q
+    Q -->|Yes| R["📊 HTML Coverage Report"]
+    Q -->|No| S["✅ Done"]
+    R --> S
 ```
 
 ---
