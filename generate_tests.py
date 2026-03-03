@@ -84,6 +84,11 @@ BANNER = """
     default=False,
     help="Display API usage cost summary and exit.",
 )
+@click.option(
+    "--conftest/--no-conftest",
+    default=True,
+    help="Generate conftest.py with Playwright fixtures (default: enabled for playwright format).",
+)
 def main(
     url: str,
     describe: str,
@@ -94,6 +99,7 @@ def main(
     demo: bool,
     report: bool,
     costs: bool,
+    conftest: bool,
 ) -> None:
     """Generate AI-powered test cases from URLs or feature descriptions."""
     console.print(Panel(BANNER, border_style="blue", width=45))
@@ -170,6 +176,12 @@ def main(
     else:
         filepath = save_gherkin_tests(test_code, source, active_provider)
 
+    # Generate conftest.py for Playwright tests
+    conftest_path = None
+    if conftest and output_format == "playwright":
+        from src.conftest_generator import generate_conftest
+        conftest_path = generate_conftest()
+
     # Generate HTML report if requested
     report_path = None
     if report:
@@ -191,6 +203,8 @@ def main(
         f"Format:   {output_format}",
         f"Provider: {'demo (built-in templates)' if demo else provider}",
     ]
+    if conftest_path:
+        summary_lines.append(f"Conftest: [bold]{conftest_path}[/bold]")
     if report_path:
         summary_lines.append(f"Report:   [bold]{report_path}[/bold]")
     summary_lines.append(
