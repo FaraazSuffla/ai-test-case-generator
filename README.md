@@ -8,8 +8,10 @@ Generate structured **Playwright** or **Gherkin** test cases from any URL or fea
 
 ## How It Works
 
+> **CLI → Page Analysis → LLM Prompt → Runnable Tests → CI/CD**
+
 <details>
-<summary>Click to expand architecture diagram</summary>
+<summary>🔍 See the full architecture diagram</summary>
 
 ```mermaid
 flowchart TD
