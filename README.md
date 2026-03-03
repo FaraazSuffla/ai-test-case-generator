@@ -1,5 +1,7 @@
 # 🤖 AI Test Case Generator
 
+[![CI](https://github.com/FaraazSuffla/ai-test-case-generator/actions/workflows/ci.yml/badge.svg)](https://github.com/FaraazSuffla/ai-test-case-generator/actions/workflows/ci.yml)
+
 Generate structured **Playwright** or **Gherkin** test cases from any URL or feature description — powered by Claude and OpenAI.
 
 ---
@@ -32,7 +34,7 @@ The tool has two modes: **demo** (built-in templates, no API key) and **full** (
 No API key needed. Generates tests against [Practice Test Automation](https://practicetestautomation.com/practice-test-login/), a real login page with known credentials (`student` / `Password123`).
 
 ```bash
-# Playwright tests
+# Playwright tests (auto-generates conftest.py too)
 py generate_tests.py --demo --url https://practicetestautomation.com/practice-test-login/ --format playwright
 
 # Gherkin scenarios
@@ -90,10 +92,37 @@ open output/report_*.html           # open HTML report (macOS)
 | `--format` | `playwright` or `gherkin` (default: `playwright`) | No |
 | `--demo` | Use built-in templates — no API key needed | No |
 | `--report` | Generate HTML coverage report | No |
+| `--conftest` / `--no-conftest` | Generate `conftest.py` with Playwright fixtures (default: enabled) | No |
 | `--provider` | `anthropic` or `openai` (default: `anthropic`) | No |
 | `--model` | Override the default model | No |
 | `--analyze` | Extract accessibility tree for smarter tests | No |
 | `--costs` | Show API usage and cost summary | No |
+
+---
+
+## Auto-Generated conftest.py
+
+When generating Playwright tests, a `conftest.py` is automatically created in `output/` with:
+
+- **Browser fixtures** — Chromium with proper session-scoped setup/teardown
+- `--headed` — Run with a visible browser for debugging
+- `--slowmo N` — Slow down actions by N milliseconds
+- `--base-url URL` — Override the target URL at runtime
+- **Screenshot on failure** — Saves to `output/screenshots/` automatically
+
+```bash
+# Generate tests + conftest
+py generate_tests.py --demo --url https://practicetestautomation.com/practice-test-login/ --format playwright
+
+# Run with defaults (headless)
+pytest output/ -v
+
+# Run headed + slow for debugging
+pytest output/ -v --headed --slowmo 500
+
+# Skip conftest generation
+py generate_tests.py --url https://example.com --format playwright --no-conftest
+```
 
 ---
 
@@ -208,16 +237,31 @@ Shows total requests, token counts, estimated cost, and per-provider breakdown.
 
 ---
 
+## CI/CD
+
+This project includes a GitHub Actions workflow that runs on every push to `main` and on all pull requests:
+
+| Job | What it does |
+|-----|-------------|
+| **Lint** | Runs flake8 on all source files |
+| **Demo Playwright** | Generates tests in demo mode, installs Playwright, runs them against the live demo site |
+| **Demo Gherkin** | Verifies `.feature` file generation |
+| **Describe Mode** | Verifies `--describe` flag works end to end |
+
+Generated test files and reports are uploaded as artifacts and retained for 14 days.
+
+---
+
 ## Roadmap
 
 These features may be added in future releases if there is enough demand:
 
+- [x] **conftest.py generator** — Auto-generate Playwright fixtures so tests are runnable out of the box
+- [x] **CI/CD integration** — GitHub Actions workflow to run generated tests automatically
 - [ ] **Automated pass/fail reporting** — Run generated tests via pytest and populate the report's status column with real pass/fail results
-- [ ] **conftest.py generator** — Auto-generate Playwright fixtures so tests are runnable out of the box
 - [ ] **Cypress test generation** — Support Cypress as an output format alongside Playwright and Gherkin
 - [ ] **Batch URL processing** — Generate tests for multiple pages in a single run
 - [ ] **Visual regression tests** — Generate screenshot comparison tests
-- [ ] **CI/CD integration** — GitHub Actions workflow to run generated tests automatically
 - [ ] **Custom prompt templates** — Let users define their own test generation prompts
 - [ ] **Jira / Azure DevOps import** — Export generated test cases directly to test management tools
 
@@ -229,10 +273,15 @@ Have a feature request? [Open an issue](https://github.com/FaraazSuffla/ai-test-
 
 ```
 ai-test-case-generator/
+├── .github/
+│   └── workflows/
+│       └── ci.yml               # GitHub Actions CI pipeline
 ├── generate_tests.py            # CLI entry point
+├── pytest.ini                   # Pytest configuration
 ├── src/
 │   ├── analyzer.py              # Page analysis & accessibility tree
 │   ├── generator.py             # LLM integration (Claude + OpenAI)
+│   ├── conftest_generator.py    # Generates conftest.py for Playwright
 │   ├── demo_templates.py        # Built-in templates for --demo mode
 │   ├── report.py                # HTML coverage report generator
 │   ├── cost_tracker.py          # API usage tracking
