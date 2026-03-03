@@ -8,6 +8,9 @@ Generate structured **Playwright** or **Gherkin** test cases from any URL or fea
 
 ## How It Works
 
+<details>
+<summary>Click to expand architecture diagram</summary>
+
 ```mermaid
 flowchart TD
     A["🖥️ CLI Command"] --> B{"Demo mode?"}
@@ -47,6 +50,8 @@ flowchart TD
     Q -->|No| S["✅ Done"]
     R --> S
 ```
+
+</details>
 
 ---
 
