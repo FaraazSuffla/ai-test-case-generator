@@ -243,12 +243,12 @@ This project includes a GitHub Actions workflow that runs on every push to `main
 
 | Job | What it does |
 |-----|-------------|
-| **Lint** | Runs flake8 on all source files |
+| **Lint** | Runs flake8 on all source files (syntax errors block, style warnings reported) |
 | **Demo Playwright** | Generates tests in demo mode, installs Playwright, runs them against the live demo site |
 | **Demo Gherkin** | Verifies `.feature` file generation |
 | **Describe Mode** | Verifies `--describe` flag works end to end |
 
-Generated test files and reports are uploaded as artifacts and retained for 14 days.
+Generated test files and reports are uploaded as build artifacts and retained for 14 days.
 
 ---
 
@@ -277,6 +277,7 @@ ai-test-case-generator/
 │   └── workflows/
 │       └── ci.yml               # GitHub Actions CI pipeline
 ├── generate_tests.py            # CLI entry point
+├── .flake8                      # Flake8 linting configuration
 ├── pytest.ini                   # Pytest configuration
 ├── src/
 │   ├── analyzer.py              # Page analysis & accessibility tree
