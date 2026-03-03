@@ -6,6 +6,44 @@ Generate structured **Playwright** or **Gherkin** test cases from any URL or fea
 
 ---
 
+## How It Works
+
+```
+CLI Command
+    │
+    ▼
+Click parses flags (--url, --format, --demo, etc.)
+    │
+    ├── Demo mode? → Use built-in templates (no API needed)
+    │
+    ├── URL provided? → Playwright loads the page
+    │                       │
+    │                       ▼
+    │                  BeautifulSoup extracts forms, inputs, buttons
+    │                       │
+    │                       ▼
+    │                  Accessibility tree extracted (if --analyze)
+    │
+    ▼
+Page context + format template → structured LLM prompt
+    │
+    ▼
+Claude or OpenAI generates test code
+    │
+    ▼
+Response cleaned (markdown fences stripped, imports verified)
+    │
+    ├── Playwright → .py test file saved to output/
+    │       └── conftest.py auto-generated with browser fixtures
+    │
+    └── Gherkin → .feature file saved to output/
+    │
+    ▼
+Optional: HTML coverage report generated (--report)
+```
+
+---
+
 ## Setup
 
 ```bash
