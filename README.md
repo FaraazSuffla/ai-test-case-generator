@@ -8,13 +8,22 @@ Generate structured **Playwright** or **Gherkin** test cases from any URL or fea
 
 ### 1. Clone & run setup
 
+**Windows (Command Prompt):**
+```bat
+git clone https://github.com/FaraazSuffla/ai-test-case-generator.git
+cd ai-test-case-generator
+setup.bat
+```
+
+**Mac / Linux:**
 ```bash
 git clone https://github.com/FaraazSuffla/ai-test-case-generator.git
 cd ai-test-case-generator
-python setup.py
+bash setup.sh
 ```
 
-Works on **Windows** (CMD, PowerShell, Git Bash), **macOS**, and **Linux** — no extra tools needed, just Python 3.10+.
+> ⚠️ **Git Bash on Windows?** Use Command Prompt (`cmd.exe`) instead — `.bat` files don’t run in Git Bash.
+> Press `Win + R`, type `cmd`, and run the commands above.
 
 The setup script will:
 - ✅ Check your Python version
@@ -39,32 +48,33 @@ That’s it — you’re ready.
 
 ## Usage
 
-Run tests using `python testgen.py` from the project folder:
+**Windows (Command Prompt):** use `testgen.bat`  
+**Mac / Linux:** use `./testgen.sh`
 
 ### Try demo mode first (no API key needed)
 
-```bash
-python testgen.py --demo --url https://practicetestautomation.com/practice-test-login/ --format playwright
+```bat
+testgen.bat --demo --url https://practicetestautomation.com/practice-test-login/ --format playwright
 ```
 
 ### Generate real tests from any URL
 
-```bash
-python testgen.py --url https://your-app.com/login --format playwright
-python testgen.py --url https://your-app.com/login --format gherkin
-python testgen.py --describe "Shopping cart with coupon codes" --format playwright
+```bat
+testgen.bat --url https://your-app.com/login --format playwright
+testgen.bat --url https://your-app.com/login --format gherkin
+testgen.bat --describe "Shopping cart with coupon codes" --format playwright
 ```
 
 ### With HTML coverage report
 
-```bash
-python testgen.py --url https://your-app.com/login --format playwright --report
+```bat
+testgen.bat --url https://your-app.com/login --format playwright --report
 ```
 
 ### Use OpenAI instead of Claude
 
-```bash
-python testgen.py --url https://your-app.com/login --format playwright --provider openai
+```bat
+testgen.bat --url https://your-app.com/login --format playwright --provider openai
 ```
 
 ---
@@ -108,8 +118,8 @@ pytest output/test_*.py -v
 
 ## Cost Tracking
 
-```bash
-python testgen.py --costs
+```bat
+testgen.bat --costs
 ```
 
 ---
@@ -118,8 +128,8 @@ python testgen.py --costs
 
 ```
 ai-test-case-generator/
-├── setup.py                     # One-command installer (all platforms)
-├── testgen.py                   # Easy run shortcut (all platforms)
+├── setup.bat / setup.sh         # One-command installer
+├── testgen.bat / testgen.sh     # Easy run shortcuts
 ├── generate_tests.py            # CLI entry point
 ├── .env.example                 # API key template
 ├── src/
