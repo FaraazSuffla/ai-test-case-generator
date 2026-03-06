@@ -8,12 +8,20 @@ Generate structured **Playwright** or **Gherkin** test cases from any URL or fea
 
 ### 1. Clone & run setup
 
-**Windows (Command Prompt):**
+**Windows — Command Prompt (`cmd.exe`):**
 ```bat
 git clone https://github.com/FaraazSuffla/ai-test-case-generator.git
 cd ai-test-case-generator
 setup.bat
 ```
+
+**Windows — Git Bash:**
+```bash
+git clone https://github.com/FaraazSuffla/ai-test-case-generator.git
+cd ai-test-case-generator
+source .venv/Scripts/activate
+```
+> ⚠️ Run `setup.bat` first from Command Prompt, then use Git Bash for running commands.
 
 **Mac / Linux:**
 ```bash
@@ -21,9 +29,6 @@ git clone https://github.com/FaraazSuffla/ai-test-case-generator.git
 cd ai-test-case-generator
 bash setup.sh
 ```
-
-> ⚠️ **Git Bash on Windows?** Use Command Prompt (`cmd.exe`) instead — `.bat` files don’t run in Git Bash.
-> Press `Win + R`, type `cmd`, and run the commands above.
 
 The setup script will:
 - ✅ Check your Python version
@@ -34,7 +39,7 @@ The setup script will:
 
 ### 2. Add your API key
 
-Open the `.env` file that was created and set:
+Open the `.env` file and set:
 
 ```
 ANTHROPIC_API_KEY=your-key-here
@@ -42,19 +47,30 @@ ANTHROPIC_API_KEY=your-key-here
 
 Get a free key at [console.anthropic.com](https://console.anthropic.com).
 
-That’s it — you’re ready.
+That's it — you're ready.
 
 ---
 
 ## Usage
 
-**Windows (Command Prompt):** use `testgen.bat`  
-**Mac / Linux:** use `./testgen.sh`
+| Terminal | Command prefix |
+|----------|---------------|
+| Windows Command Prompt | `testgen.bat` |
+| Windows Git Bash | `python generate_tests.py` |
+| Mac / Linux | `./testgen.sh` |
 
 ### Try demo mode first (no API key needed)
 
+**Command Prompt:**
 ```bat
 testgen.bat --demo --url https://practicetestautomation.com/practice-test-login/ --format playwright
+testgen.bat --demo --url https://practicetestautomation.com/practice-test-login/ --format gherkin
+testgen.bat --demo --url https://practicetestautomation.com/practice-test-login/ --format playwright --report
+```
+
+**Git Bash:**
+```bash
+python generate_tests.py --demo --url https://practicetestautomation.com/practice-test-login/ --format playwright
 ```
 
 ### Generate real tests from any URL
@@ -99,7 +115,7 @@ testgen.bat --url https://your-app.com/login --format playwright --provider open
 
 Every run produces tests across **4 categories**:
 
-| Category | What’s Tested | Example |
+| Category | What's Tested | Example |
 |----------|--------------|----------|
 | ✅ **Happy Path** | Valid inputs, expected flows | Login with correct credentials |
 | ❌ **Negative** | Invalid inputs, error handling | Wrong password, empty fields |
@@ -110,6 +126,12 @@ Every run produces tests across **4 categories**:
 
 ## Running Generated Tests
 
+**Command Prompt** (use the exact filename from the output):
+```bat
+pytest output\test_practicetestautomation_com_practice_test_login_playwright.py -v
+```
+
+**Git Bash / Mac / Linux:**
 ```bash
 pytest output/test_*.py -v
 ```
