@@ -173,8 +173,18 @@ def generate_report(
     format: str,
     provider: str,
     test_filepath: str,
+    auto_open: bool = True,
 ) -> str:
-    """Generate an HTML report for the generated test cases."""
+    """Generate an HTML report for the generated test cases.
+
+    Args:
+        test_code: The generated test source code.
+        source: URL or description used to generate the tests.
+        format: 'playwright' or 'gherkin'.
+        provider: LLM provider name.
+        test_filepath: Path where the test file was saved.
+        auto_open: Whether to open the report in the browser automatically.
+    """
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     categories = _count_tests_by_category(test_code, format)
@@ -660,10 +670,11 @@ def generate_report(
     with open(report_path, "w", encoding="utf-8") as f:
         f.write(html)
 
-    try:
-        abs_path = os.path.abspath(report_path)
-        webbrowser.open(f"file://{abs_path}")
-    except Exception:
-        pass
+    if auto_open:
+        try:
+            abs_path = os.path.abspath(report_path)
+            webbrowser.open(f"file://{abs_path}")
+        except Exception:
+            pass
 
     return report_path
