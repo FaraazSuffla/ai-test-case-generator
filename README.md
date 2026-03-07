@@ -4,119 +4,83 @@ Generate structured **Playwright** or **Gherkin** test cases from any URL or fea
 
 ---
 
-## ⚡ Quick Start (2 steps)
+## Quick Start
 
-### 1. Clone & run setup
+### Step 1 — Clone the repo
 
-**Windows — Command Prompt (`cmd.exe`):**
-```bat
-git clone https://github.com/FaraazSuffla/ai-test-case-generator.git
-cd ai-test-case-generator
-setup.bat
-```
-
-**Windows — Git Bash:**
 ```bash
 git clone https://github.com/FaraazSuffla/ai-test-case-generator.git
 cd ai-test-case-generator
-source .venv/Scripts/activate
 ```
-> ⚠️ Run `setup.bat` first from Command Prompt, then use Git Bash for running commands.
 
-**Mac / Linux:**
+### Step 2 — Install dependencies
+
+**Demo mode only** (no API key needed):
 ```bash
-git clone https://github.com/FaraazSuffla/ai-test-case-generator.git
-cd ai-test-case-generator
-bash setup.sh
+py -m pip install click rich python-dotenv beautifulsoup4 requests
 ```
 
-The setup script will:
-- ✅ Check your Python version
-- ✅ Create an isolated virtual environment
-- ✅ Install all dependencies
-- ✅ Install the Playwright browser
-- ✅ Create a `.env` file ready for your API key
-
-### 2. Add your API key
-
-Open the `.env` file and set:
-
-```
-ANTHROPIC_API_KEY=your-key-here
+**Full AI mode** (also run these):
+```bash
+py -m pip install -r requirements.txt
+playwright install chromium
 ```
 
-Get a free key at [console.anthropic.com](https://console.anthropic.com).
-
-That’s it — you’re ready.
+> **Tip:** If you get `ModuleNotFoundError`, use `py -m pip install` instead of `pip install`.
 
 ---
 
-## Usage
+## Two Modes
 
-| Terminal | Command prefix |
-|----------|---------------|
-| Windows Command Prompt | `testgen.bat` |
-| Windows Git Bash | `python generate_tests.py` |
-| Mac / Linux | `./testgen.sh` |
+| Mode | What it does | API key needed? |
+|------|-------------|-----------------|
+| `--demo` | Uses built-in templates against a real login page | ❌ No |
+| Full | AI-generates tests for any URL or description | ✅ Yes |
 
-### Try demo mode first (no API key needed)
+---
 
-```bat
-testgen.bat --demo --url https://practicetestautomation.com/practice-test-login/ --format playwright
-testgen.bat --demo --url https://practicetestautomation.com/practice-test-login/ --format gherkin
-testgen.bat --demo --url https://practicetestautomation.com/practice-test-login/ --format playwright --report
+## Demo Mode
+
+No API key required. Runs against [Practice Test Automation](https://practicetestautomation.com/practice-test-login/) — a real login page with known credentials (`student` / `Password123`) and real selectors, so the generated tests are actually runnable.
+
+```bash
+# Generate Playwright tests
+py generate_tests.py --demo --url https://practicetestautomation.com/practice-test-login/ --format playwright
+
+# Generate Gherkin scenarios
+py generate_tests.py --demo --url https://practicetestautomation.com/practice-test-login/ --format gherkin
+
+# Add an HTML coverage report
+py generate_tests.py --demo --url https://practicetestautomation.com/practice-test-login/ --format playwright --report
+
+# Generate from a description instead of a URL
+py generate_tests.py --demo --describe "User registration" --format gherkin
 ```
 
-### Generate real tests from any URL
+Demo mode produces **18 Playwright tests** or **16 Gherkin scenarios** across 4 categories per run.
 
-```bat
-testgen.bat --url https://your-app.com/login --format playwright
-testgen.bat --url https://your-app.com/login --format gherkin
-testgen.bat --describe "Shopping cart with coupon codes" --format playwright
-```
+---
 
-### Auto-open the HTML report in your browser
+## Full AI Mode
 
-```bat
-testgen.bat --url https://your-app.com/login --format playwright --open-report
-```
+Set your API key, then point the tool at any URL or description:
 
-### Generate tests and run them immediately
+```bash
+# Set your key (pick one)
+export ANTHROPIC_API_KEY="your-key"
+export OPENAI_API_KEY="your-key"
 
-```bat
-testgen.bat --url https://your-app.com/login --format playwright --run
-```
+# Generate tests from a live page (uses Claude by default)
+py generate_tests.py --url https://your-app.com/login --format playwright
 
-Combine with demo mode to test without an API key:
+# Use OpenAI instead
+py generate_tests.py --url https://your-app.com/login --format gherkin --provider openai
 
-```bat
-testgen.bat --demo --url https://practicetestautomation.com/practice-test-login/ --format playwright --run
-```
+# Include accessibility tree analysis for smarter tests
+py generate_tests.py --url https://your-app.com/login --format playwright --analyze
 
-### Watch a URL for changes and auto-regenerate
-
-```bat
-testgen.bat --url https://your-app.com/login --format playwright --watch
-```
-
-Checks every 60 seconds by default. Change the interval:
-
-```bat
-testgen.bat --url https://your-app.com/login --format playwright --watch --watch-interval 30
-```
-
-Combine with `--run` to regenerate AND re-run tests on every change:
-
-```bat
-testgen.bat --url https://your-app.com/login --format playwright --watch --run
-```
-
-Press `Ctrl+C` to stop watching.
-
-### Use OpenAI instead of Claude
-
-```bat
-testgen.bat --url https://your-app.com/login --format playwright --provider openai
+# Generate from a description (no URL needed)
+py generate_tests.py --describe "Shopping cart with coupon codes" --format playwright
 ```
 
 ---
@@ -124,57 +88,139 @@ testgen.bat --url https://your-app.com/login --format playwright --provider open
 ## All CLI Flags
 
 | Flag | Description | Default |
-|------|-------------|------|
+|------|-------------|---------|
 | `--url` | URL to generate tests for | — |
 | `--describe` | Feature description to generate from | — |
 | `--format` | `playwright` or `gherkin` | `playwright` |
-| `--demo` | Use built-in templates — no API key needed | off |
+| `--demo` | Use built-in templates, no API key needed | off |
 | `--report` | Generate an HTML coverage report | off |
-| `--open-report` | Generate report and auto-open in browser | off |
-| `--run` | Generate tests then immediately execute them | off |
-| `--watch` | Watch URL for changes and regenerate automatically | off |
-| `--watch-interval` | Seconds between checks in watch mode | `60` |
 | `--provider` | `anthropic` or `openai` | `anthropic` |
 | `--model` | Override the default model | — |
 | `--analyze` | Extract accessibility tree for smarter tests | off |
 | `--costs` | Show API usage and cost summary | off |
 
+> Either `--url` or `--describe` is required on every run.
+
+---
+
+## Viewing Your Output
+
+All generated files are saved to the `output/` folder.
+
+```bash
+# List generated files
+ls output/
+
+# View Playwright tests
+cat output/test_*.py
+
+# View Gherkin scenarios
+cat output/*.feature
+
+# Open HTML report
+start output/report_*.html   # Windows
+open output/report_*.html    # macOS
+```
+
 ---
 
 ## What Gets Generated
 
-Every run produces tests across **4 categories**:
+Every run produces tests across 4 categories:
 
-| Category | What’s Tested | Example |
-|----------|--------------|----------|
-| ✅ **Happy Path** | Valid inputs, expected flows | Login with correct credentials |
-| ❌ **Negative** | Invalid inputs, error handling | Wrong password, empty fields |
-| 🔄 **Edge Cases** | Security & unusual inputs | SQL injection, XSS payloads |
-| 📏 **Boundary** | Limits & extremes | 500-char username, special chars |
+| Category | What's Tested | Example |
+|----------|--------------|---------| 
+| ✅ Happy Path | Valid inputs, expected flows | Login with correct credentials |
+| ❌ Negative | Invalid inputs, error handling | Wrong password, empty fields |
+| 🔄 Edge Cases | Security & unusual inputs | SQL injection, XSS, case sensitivity |
+| 📏 Boundary | Limits & extremes | 500-char username, special characters |
+
+### Example: what the tool generates vs. what a junior might write
+
+**Typical junior test:**
+```python
+def test_login():
+    page.goto("https://practicetestautomation.com/practice-test-login/")
+    page.fill("#username", "student")
+    page.fill("#password", "Password123")
+    page.click("#submit")
+    assert "logged-in-successfully" in page.url
+```
+1 test. Happy path only.
+
+**What this tool generates:**
+```python
+class TestLoginHappyPath:
+    def test_successful_login_with_valid_credentials(self, page: Page):
+        page.goto(BASE_URL)
+        page.locator("#username").fill("student")
+        page.locator("#password").fill("Password123")
+        page.locator("#submit").click()
+        expect(page).to_have_url_matching(".*logged-in-successfully.*")
+
+    def test_successful_login_displays_logout_button(self, page: Page):
+        ...  # verifies Log out link is visible
+
+class TestLoginNegative:
+    def test_login_with_invalid_username(self, page: Page):
+        ...  # verifies "Your username is invalid!" error
+
+    def test_login_with_invalid_password(self, page: Page):
+        ...  # verifies "Your password is invalid!" error
+
+class TestLoginEdgeCases:
+    def test_login_with_sql_injection_in_username(self, page: Page):
+        ...  # verifies injection doesn't bypass auth
+
+class TestLoginBoundary:
+    def test_login_with_very_long_username(self, page: Page):
+        ...  # sends 500-char string, verifies error
+```
+18 tests. 4 categories. Real selectors. Runnable.
 
 ---
 
-## Running Generated Tests
+## Running the Generated Tests
 
-**Command Prompt** (use the exact filename from output):
-```bat
-pytest output\test_practicetestautomation_com_practice_test_login_playwright.py -v
-```
+If you installed Playwright, you can execute the generated tests directly:
 
-**Git Bash / Mac / Linux:**
 ```bash
-pytest output/test_*.py -v
+py -m pip install playwright pytest
+playwright install chromium
+pytest output/test_practicetestautomation_com_practice_test_login_playwright.py -v
 ```
 
-Or skip the manual step entirely — use `--run` to do it automatically.
+> **Note on the HTML report status column:** Tests show as "Pending" because the tool *generates* test code — it doesn't execute it. Real pass/fail results are on the roadmap.
 
 ---
 
-## Cost Tracking
+## HTML Coverage Report
 
-```bat
-testgen.bat --costs
+Add `--report` to any command to generate a standalone HTML report:
+
+```bash
+py generate_tests.py --demo --url https://practicetestautomation.com/practice-test-login/ --format playwright --report
 ```
+
+The report includes:
+- Total test count with category breakdown
+- Collapsible sections per category
+- Pass/fail status column (shows "Pending" until tests are executed)
+- Export to PDF button
+- Full generated code in a collapsible block
+- Dark theme, no external dependencies
+
+---
+
+## Cost Tracking (Full Mode)
+
+Every API call is logged. View your usage at any time:
+
+```bash
+py generate_tests.py --costs
+```
+
+Shows total requests, token counts, estimated cost, and a per-provider breakdown.
 
 ---
 
@@ -182,23 +228,38 @@ testgen.bat --costs
 
 ```
 ai-test-case-generator/
-├── setup.bat / setup.sh         # One-command installer
-├── testgen.bat / testgen.sh     # Easy run shortcuts
-├── generate_tests.py            # CLI entry point
-├── .env.example                 # API key template
+├── generate_tests.py          # CLI entry point
 ├── src/
-│   ├── analyzer.py              # Page analysis & accessibility tree
-│   ├── generator.py             # LLM integration (Claude + OpenAI)
-│   ├── demo_templates.py        # Built-in templates for --demo mode
-│   ├── report.py                # HTML coverage report generator
-│   ├── cost_tracker.py          # API usage tracking
-│   ├── prompts.py               # LLM prompt templates
+│   ├── analyzer.py            # Page analysis & accessibility tree
+│   ├── generator.py           # LLM integration (Claude + OpenAI)
+│   ├── demo_templates.py      # Built-in templates for --demo mode
+│   ├── report.py              # HTML coverage report generator
+│   ├── cost_tracker.py        # API usage tracking
+│   ├── prompts.py             # LLM prompt templates
 │   └── formatters/
-│       ├── playwright_fmt.py    # Saves .py test files
-│       └── gherkin_fmt.py       # Saves .feature files
-├── output/                      # Generated tests & reports
-└── examples/                    # Sample outputs
+│       ├── playwright_fmt.py  # Saves .py test files
+│       └── gherkin_fmt.py     # Saves .feature files
+├── output/                    # Generated tests & reports land here
+├── examples/                  # Sample outputs
+└── requirements.txt
 ```
+
+---
+
+## Roadmap
+
+- **Automated pass/fail reporting** — Run tests via pytest and populate real results in the report
+- **conftest.py generator** — Auto-generate Playwright fixtures so tests run out of the box
+- **Cypress support** — Add Cypress as an output format alongside Playwright and Gherkin
+- **Batch URL processing** — Generate tests for multiple pages in a single run
+- **Visual regression tests** — Generate screenshot comparison tests
+- **CI/CD integration** — GitHub Actions workflow to run generated tests automatically
+- **Custom prompt templates** — Let users define their own generation prompts
+- **Jira / Azure DevOps export** — Push generated test cases directly to test management tools
+
+Have a feature request? [Open an issue](https://github.com/FaraazSuffla/ai-test-case-generator/issues) or ⭐ the repo.
+
+---
 
 ## Tech Stack
 
