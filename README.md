@@ -111,11 +111,17 @@ py generate_tests.py --describe "Shopping cart with coupon codes" --format playw
 | `--describe` | Feature description to generate from | — |
 | `--format` | `playwright` or `gherkin` | `playwright` |
 | `--output-dir` | Directory to write generated test files into | `output` |
+| `--provider` | `anthropic` or `openai` | `anthropic` |
+| `--model` | Override the default model (`claude-sonnet-4-20250514` / `gpt-4o`) | — |
+| `--analyze` | Extract accessibility tree for smarter tests | off |
 | `--demo` | Use built-in templates, no API key needed | off |
 | `--report` | Generate an HTML coverage report | off |
-| `--provider` | `anthropic` or `openai` | `anthropic` |
-| `--model` | Override the default model | — |
-| `--analyze` | Extract accessibility tree for smarter tests | off |
+| `--open-report` | Generate report and open it in the browser immediately | off |
+| `--run` | Generate tests then execute them immediately with pytest / behave | off |
+| `--watch` | Re-generate whenever the target URL changes (requires `--url`) | off |
+| `--watch-interval` | Polling interval for `--watch` mode (seconds) | `60` |
+| `--conftest/--no-conftest` | Generate `conftest.py` with Playwright fixtures | on |
+| `--no-retry` | Disable retry logic for API calls (useful in CI) | off |
 | `--costs` | Show API usage and cost summary | off |
 
 > Either `--url` or `--describe` is required on every run.
@@ -201,7 +207,13 @@ class TestLoginBoundary:
 
 ## Running the Generated Tests
 
-If you installed Playwright, you can execute the generated tests directly:
+Add `--run` to execute tests immediately after generation:
+
+```bash
+py generate_tests.py --demo --url https://practicetestautomation.com/practice-test-login/ --format playwright --run
+```
+
+Or run them manually after generation:
 
 ```bash
 py -m pip install playwright pytest
@@ -209,7 +221,7 @@ playwright install chromium
 pytest output/test_practicetestautomation_com_practice_test_login_playwright.py -v
 ```
 
-> **Note on the HTML report status column:** Tests show as "Pending" because the tool *generates* test code — it doesn't execute it. Real pass/fail results are on the roadmap.
+> **Note on the HTML report status column:** Tests show as "Pending" because the tool *generates* test code — it doesn't execute it. Use `--run` to execute and see real results in the terminal.
 
 ---
 
@@ -251,6 +263,7 @@ ai-test-case-generator/
 ├── src/
 │   ├── analyzer.py            # Page analysis & accessibility tree
 │   ├── generator.py           # LLM integration (Claude + OpenAI)
+│   ├── conftest_generator.py  # Playwright fixture generator
 │   ├── demo_templates.py      # Built-in templates for --demo mode
 │   ├── report.py              # HTML coverage report generator
 │   ├── cost_tracker.py        # API usage tracking
@@ -258,6 +271,7 @@ ai-test-case-generator/
 │   └── formatters/
 │       ├── playwright_fmt.py  # Saves .py test files
 │       └── gherkin_fmt.py     # Saves .feature files
+├── tests/                     # Unit tests for core logic
 ├── output/                    # Generated tests & reports land here
 ├── examples/                  # Sample outputs
 └── requirements.txt
@@ -267,12 +281,9 @@ ai-test-case-generator/
 
 ## Roadmap
 
-- **Automated pass/fail reporting** — Run tests via pytest and populate real results in the report
-- **conftest.py generator** — Auto-generate Playwright fixtures so tests run out of the box
 - **Cypress support** — Add Cypress as an output format alongside Playwright and Gherkin
 - **Batch URL processing** — Generate tests for multiple pages in a single run
 - **Visual regression tests** — Generate screenshot comparison tests
-- **CI/CD integration** — GitHub Actions workflow to run generated tests automatically
 - **Custom prompt templates** — Let users define their own generation prompts
 - **Jira / Azure DevOps export** — Push generated test cases directly to test management tools
 
