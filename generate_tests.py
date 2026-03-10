@@ -35,7 +35,8 @@ BANNER = """
 
 
 def _run_generation(
-    url, describe, output_format, provider, model, analyze, demo, report, open_report, conftest
+    url, describe, output_format, provider, model, analyze, demo, report, open_report, conftest,
+    retry: bool = True,
 ) -> tuple[str, str]:
     """Core generation logic. Returns (filepath, report_path or '')."""
     source = url or describe
@@ -67,6 +68,7 @@ def _run_generation(
                 description=describe,
                 analysis=analysis,
                 include_a11y=analyze,
+                retry=retry,
             )
         except EnvironmentError as e:
             console.print(f"\n[red]✗ Configuration error:[/red] {e}")
@@ -189,9 +191,10 @@ def _get_page_hash(url: str) -> str | None:
 @click.option("--watch-interval", type=int, default=60, help="How often to check for page changes in --watch mode (seconds, default: 60).")
 @click.option("--costs", is_flag=True, default=False, help="Display API usage cost summary and exit.")
 @click.option("--conftest/--no-conftest", default=True, help="Generate conftest.py with Playwright fixtures (default: enabled for playwright format).")
+@click.option("--no-retry", is_flag=True, default=False, help="Disable retry logic (useful for CI/testing).")
 def main(
     url, describe, output_format, provider, model,
-    analyze, demo, report, open_report, run_tests, watch, watch_interval, costs, conftest,
+    analyze, demo, report, open_report, run_tests, watch, watch_interval, costs, conftest, no_retry,
 ) -> None:
     """Generate AI-powered test cases from URLs or feature descriptions."""
     console.print(Panel(BANNER, border_style="blue", width=45))
@@ -242,7 +245,8 @@ def main(
                     run_count += 1
                     filepath, report_path = _run_generation(
                         url, describe, output_format, provider, model,
-                        analyze, demo, report, open_report, conftest
+                        analyze, demo, report, open_report, conftest,
+                        retry=not no_retry,
                     )
 
                     if run_tests:
@@ -261,7 +265,8 @@ def main(
     # Normal single run
     filepath, report_path = _run_generation(
         url, describe, output_format, provider, model,
-        analyze, demo, report, open_report, conftest
+        analyze, demo, report, open_report, conftest,
+        retry=not no_retry,
     )
 
     if run_tests:

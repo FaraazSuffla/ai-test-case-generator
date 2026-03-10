@@ -6,6 +6,7 @@ and cost tracking.
 """
 
 import os
+import time
 from typing import Optional
 
 from dotenv import load_dotenv
@@ -30,6 +31,8 @@ DEFAULT_MODELS = {
     "anthropic": "claude-sonnet-4-20250514",
     "openai": "gpt-4o",
 }
+
+_RETRY_DELAYS: list[int] = [2, 4, 8]
 
 
 def _build_context(
@@ -70,7 +73,7 @@ def _build_context(
     raise ValueError("Either url or description must be provided.")
 
 
-def _call_anthropic(prompt: str, model: str) -> tuple[str, int, int]:
+def _call_anthropic(prompt: str, model: str, *, retry: bool = True) -> tuple[str, int, int]:
     """Call the Anthropic Claude API.
 
     Returns:
@@ -87,12 +90,30 @@ def _call_anthropic(prompt: str, model: str) -> tuple[str, int, int]:
 
     client = anthropic.Anthropic(api_key=api_key)
 
-    response = client.messages.create(
-        model=model,
-        max_tokens=4096,
-        system=SYSTEM_PROMPT,
-        messages=[{"role": "user", "content": prompt}],
+    _RETRYABLE = (
+        anthropic.RateLimitError,
+        anthropic.APIConnectionError,
+        anthropic.InternalServerError,
     )
+
+    for attempt, delay in enumerate(_RETRY_DELAYS + [None], start=1):
+        try:
+            response = client.messages.create(
+                model=model,
+                max_tokens=4096,
+                system=SYSTEM_PROMPT,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            break  # success — exit the loop
+        except _RETRYABLE as exc:
+            is_last = delay is None
+            if not retry or is_last:
+                raise
+            console.print(
+                f"[yellow]⚠ Anthropic API error (attempt {attempt}/{len(_RETRY_DELAYS)}):[/yellow] "
+                f"{type(exc).__name__} — retrying in {delay}s…"
+            )
+            time.sleep(delay)
 
     text = response.content[0].text
     input_tokens = response.usage.input_tokens
@@ -101,12 +122,13 @@ def _call_anthropic(prompt: str, model: str) -> tuple[str, int, int]:
     return text, input_tokens, output_tokens
 
 
-def _call_openai(prompt: str, model: str) -> tuple[str, int, int]:
+def _call_openai(prompt: str, model: str, *, retry: bool = True) -> tuple[str, int, int]:
     """Call the OpenAI API.
 
     Returns:
         Tuple of (response_text, input_tokens, output_tokens)
     """
+    import openai
     from openai import OpenAI
 
     api_key = os.getenv("OPENAI_API_KEY")
@@ -118,14 +140,32 @@ def _call_openai(prompt: str, model: str) -> tuple[str, int, int]:
 
     client = OpenAI(api_key=api_key)
 
-    response = client.chat.completions.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": prompt},
-        ],
-        max_tokens=4096,
+    _RETRYABLE = (
+        openai.RateLimitError,
+        openai.APIConnectionError,
+        openai.InternalServerError,
     )
+
+    for attempt, delay in enumerate(_RETRY_DELAYS + [None], start=1):
+        try:
+            response = client.chat.completions.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": prompt},
+                ],
+                max_tokens=4096,
+            )
+            break
+        except _RETRYABLE as exc:
+            is_last = delay is None
+            if not retry or is_last:
+                raise
+            console.print(
+                f"[yellow]⚠ OpenAI API error (attempt {attempt}/{len(_RETRY_DELAYS)}):[/yellow] "
+                f"{type(exc).__name__} — retrying in {delay}s…"
+            )
+            time.sleep(delay)
 
     text = response.choices[0].message.content
     input_tokens = response.usage.prompt_tokens
@@ -142,6 +182,7 @@ def generate_tests(
     description: Optional[str] = None,
     analysis: Optional[PageAnalysis] = None,
     include_a11y: bool = False,
+    retry: bool = True,
 ) -> str:
     """Generate test cases using the specified LLM provider.
 
@@ -153,6 +194,7 @@ def generate_tests(
         description: Feature description for test generation.
         analysis: Pre-computed page analysis.
         include_a11y: Include accessibility tree in context.
+        retry: Retry transient API errors with exponential back-off.
 
     Returns:
         Generated test code as a string.
@@ -177,9 +219,9 @@ def generate_tests(
 
     # Call the appropriate provider
     if provider == "anthropic":
-        text, input_tokens, output_tokens = _call_anthropic(prompt, model)
+        text, input_tokens, output_tokens = _call_anthropic(prompt, model, retry=retry)
     elif provider == "openai":
-        text, input_tokens, output_tokens = _call_openai(prompt, model)
+        text, input_tokens, output_tokens = _call_openai(prompt, model, retry=retry)
     else:
         raise ValueError(
             f"Unknown provider: {provider}. Use 'anthropic' or 'openai'."
