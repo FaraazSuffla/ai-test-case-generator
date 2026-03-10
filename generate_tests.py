@@ -37,6 +37,7 @@ BANNER = """
 def _run_generation(
     url, describe, output_format, provider, model, analyze, demo, report, open_report, conftest,
     retry: bool = True,
+    output_dir: str = "output",
 ) -> tuple[str, str]:
     """Core generation logic. Returns (filepath, report_path or '')."""
     source = url or describe
@@ -85,13 +86,14 @@ def _run_generation(
     active_provider = provider if not demo else "demo"
 
     if output_format == "playwright":
-        filepath = save_playwright_tests(test_code, source, active_provider)
+        filepath = save_playwright_tests(test_code, source, active_provider, output_dir)
     else:
-        filepath = save_gherkin_tests(test_code, source, active_provider)
+        filepath = save_gherkin_tests(test_code, source, active_provider, output_dir)
 
     conftest_path = None
     if conftest and output_format == "playwright":
         from src.conftest_generator import generate_conftest
+        # TODO: pass output_dir here once conftest_generator scope is confirmed (future PR)
         conftest_path = generate_conftest()
 
     report_path = ""
@@ -178,7 +180,15 @@ def _get_page_hash(url: str) -> str | None:
     default="anthropic",
     help="LLM provider to use (default: anthropic).",
 )
-@click.option("--model", type=str, default=None, help="Specific model to use (overrides provider default).")
+@click.option(
+    "--model",
+    type=str,
+    default=None,
+    help=(
+        "Specific model to use "
+        "(default: claude-sonnet-4-20250514 for anthropic, gpt-4o for openai)."
+    ),
+)
 @click.option("--analyze", is_flag=True, default=False, help="Analyse page accessibility tree for context-aware tests.")
 @click.option("--demo", is_flag=True, default=False, help="Run in demo mode using built-in templates (no API key needed).")
 @click.option("--report", is_flag=True, default=False, help="Generate an HTML report alongside test files.")
@@ -192,9 +202,17 @@ def _get_page_hash(url: str) -> str | None:
 @click.option("--costs", is_flag=True, default=False, help="Display API usage cost summary and exit.")
 @click.option("--conftest/--no-conftest", default=True, help="Generate conftest.py with Playwright fixtures (default: enabled for playwright format).")
 @click.option("--no-retry", is_flag=True, default=False, help="Disable retry logic (useful for CI/testing).")
+@click.option(
+    "--output-dir",
+    type=str,
+    default="output",
+    show_default=True,
+    help="Directory to write generated test files into.",
+)
 def main(
     url, describe, output_format, provider, model,
     analyze, demo, report, open_report, run_tests, watch, watch_interval, costs, conftest, no_retry,
+    output_dir,
 ) -> None:
     """Generate AI-powered test cases from URLs or feature descriptions."""
     console.print(Panel(BANNER, border_style="blue", width=45))
@@ -247,6 +265,7 @@ def main(
                         url, describe, output_format, provider, model,
                         analyze, demo, report, open_report, conftest,
                         retry=not no_retry,
+                        output_dir=output_dir,
                     )
 
                     if run_tests:
@@ -267,6 +286,7 @@ def main(
         url, describe, output_format, provider, model,
         analyze, demo, report, open_report, conftest,
         retry=not no_retry,
+        output_dir=output_dir,
     )
 
     if run_tests:

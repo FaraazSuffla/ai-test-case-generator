@@ -11,7 +11,7 @@ from rich.console import Console
 
 console = Console()
 
-OUTPUT_DIR = "output"
+OUTPUT_DIR = "output"  # kept for backwards-compat; not used internally
 
 HEADER_TEMPLATE = '''"""Auto-generated Playwright tests.
 
@@ -44,6 +44,7 @@ def save_playwright_tests(
     code: str,
     source: str,
     provider: str = "anthropic",
+    output_dir: str = "output",
 ) -> str:
     """Save generated Playwright test code to a file.
 
@@ -51,14 +52,15 @@ def save_playwright_tests(
         code: The generated Python test code.
         source: The URL or description used to generate tests.
         provider: The LLM provider used.
+        output_dir: Directory to write the test file into.
 
     Returns:
         The path to the saved file.
     """
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    os.makedirs(output_dir, exist_ok=True)
 
     filename = _sanitise_filename(source)
-    filepath = os.path.join(OUTPUT_DIR, filename)
+    filepath = os.path.join(output_dir, filename)
 
     header = HEADER_TEMPLATE.format(
         source=source,

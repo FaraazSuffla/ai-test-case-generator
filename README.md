@@ -28,6 +28,24 @@ playwright install chromium
 
 > **Tip:** If you get `ModuleNotFoundError`, use `py -m pip install` instead of `pip install`.
 
+### Shortcut Wrappers (optional)
+
+After running setup, you can use the `testgen` shortcut scripts instead of typing `python generate_tests.py` every time.
+
+**Windows (Command Prompt):**
+```cmd
+testgen.bat --url https://example.com/login --format playwright
+testgen.bat --demo --describe "login page" --format playwright
+```
+
+**Mac / Linux:**
+```bash
+./testgen.sh --url https://example.com/login --format playwright
+./testgen.sh --demo --describe "login page" --format playwright
+```
+
+> **Note:** `testgen.py` is a stub — do not run it directly. Use `testgen.bat` on Windows or `./testgen.sh` on Mac/Linux.
+
 ---
 
 ## Two Modes
@@ -92,6 +110,7 @@ py generate_tests.py --describe "Shopping cart with coupon codes" --format playw
 | `--url` | URL to generate tests for | — |
 | `--describe` | Feature description to generate from | — |
 | `--format` | `playwright` or `gherkin` | `playwright` |
+| `--output-dir` | Directory to write generated test files into | `output` |
 | `--demo` | Use built-in templates, no API key needed | off |
 | `--report` | Generate an HTML coverage report | off |
 | `--provider` | `anthropic` or `openai` | `anthropic` |
@@ -105,7 +124,7 @@ py generate_tests.py --describe "Shopping cart with coupon codes" --format playw
 
 ## Viewing Your Output
 
-All generated files are saved to the `output/` folder.
+All generated files are saved to the `output/` folder by default. Use `--output-dir <path>` to write to a different location.
 
 ```bash
 # List generated files
