@@ -9,4 +9,4 @@ fi
 
 # shellcheck disable=SC1091
 source .venv/bin/activate
-python generate_tests.py "$@"
+python3 generate_tests.py "$@"

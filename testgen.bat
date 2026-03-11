@@ -9,4 +9,4 @@ if not exist .venv (
 )
 
 call .venv\Scripts\activate.bat
-python generate_tests.py %*
+py generate_tests.py %*

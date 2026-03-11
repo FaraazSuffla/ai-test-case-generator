@@ -169,6 +169,87 @@ def _get_page_hash(url: str) -> str | None:
         return None
 
 
+def _run_health_check() -> None:
+    """Validate environment and print a pre-flight status table."""
+    import importlib
+    from rich.table import Table
+
+    console.print(Panel(BANNER, border_style="blue", width=45))
+    console.print("\n[bold]Environment Check[/bold]\n")
+
+    table = Table(show_header=True, header_style="bold", width=58)
+    table.add_column("Check", style="dim", width=28)
+    table.add_column("Status", width=10)
+    table.add_column("Detail", width=18)
+
+    all_ok = True
+
+    # Python version
+    major, minor = sys.version_info.major, sys.version_info.minor
+    if (major, minor) >= (3, 10):
+        table.add_row("Python version", "[green]OK[/green]", f"{major}.{minor}")
+    else:
+        table.add_row("Python version", "[red]FAIL[/red]", f"{major}.{minor} (need 3.10+)")
+        all_ok = False
+
+    # Required packages
+    PACKAGES = [
+        ("click", "click"), ("rich", "rich"), ("anthropic", "anthropic"),
+        ("openai", "openai"), ("playwright", "playwright"),
+        ("beautifulsoup4", "bs4"), ("requests", "requests"),
+        ("python-dotenv", "dotenv"),
+    ]
+    for display_name, import_name in PACKAGES:
+        try:
+            importlib.import_module(import_name)
+            table.add_row(f"pkg: {display_name}", "[green]OK[/green]", "installed")
+        except ImportError:
+            table.add_row(f"pkg: {display_name}", "[red]FAIL[/red]", "not found")
+            all_ok = False
+
+    # .env file
+    env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+    if os.path.exists(env_path):
+        table.add_row(".env file", "[green]OK[/green]", "found")
+    else:
+        table.add_row(".env file", "[yellow]WARN[/yellow]", "not found (demo OK)")
+
+    # API keys
+    from dotenv import load_dotenv
+    load_dotenv(env_path)
+
+    PLACEHOLDERS = ("your-", "placeholder", "change-me", "sk-your")
+
+    def _key_status(key_name: str, optional: bool = False):
+        val = os.getenv(key_name, "")
+        if val and not any(p in val.lower() for p in PLACEHOLDERS):
+            return "[green]OK[/green]", "set"
+        elif val:
+            return "[yellow]WARN[/yellow]", "looks like placeholder"
+        elif optional:
+            return "[dim]--[/dim]", "not set (optional)"
+        else:
+            return "[yellow]WARN[/yellow]", "not set (demo OK)"
+
+    anth_status, anth_detail = _key_status("ANTHROPIC_API_KEY")
+    oai_status, oai_detail = _key_status("OPENAI_API_KEY", optional=True)
+    table.add_row("ANTHROPIC_API_KEY", anth_status, anth_detail)
+    table.add_row("OPENAI_API_KEY", oai_status, oai_detail)
+
+    console.print(table)
+
+    if all_ok:
+        console.print("\n[green]All critical checks passed.[/green]")
+    else:
+        console.print("\n[red]One or more critical checks failed.[/red] See table above.")
+
+    console.print(
+        "\n[dim]Try it now (no API key needed):[/dim]\n"
+        "  py generate_tests.py --demo --describe \"User login\" --format playwright\n"
+    )
+    sys.exit(0 if all_ok else 1)
+
+
 @click.command()
 @click.option("--url", type=str, default=None, help="URL of the web page to generate tests for.")
 @click.option("--describe", type=str, default=None, help="Feature description to generate tests from.")
@@ -206,6 +287,7 @@ def _get_page_hash(url: str) -> str | None:
 @click.option("--costs", is_flag=True, default=False, help="Display API usage cost summary and exit.")
 @click.option("--conftest/--no-conftest", default=True, help="Generate conftest.py with Playwright fixtures (default: enabled for playwright format).")
 @click.option("--no-retry", is_flag=True, default=False, help="Disable retry logic (useful for CI/testing).")
+@click.option("--check", is_flag=True, default=False, help="Run environment health check and exit.")
 @click.option(
     "--output-dir",
     type=str,
@@ -216,9 +298,12 @@ def _get_page_hash(url: str) -> str | None:
 def main(
     url, describe, output_format, provider, model,
     analyze, demo, report, open_report, run_tests, watch, watch_interval, costs, conftest, no_retry,
-    output_dir,
+    check, output_dir,
 ) -> None:
     """Generate AI-powered test cases from URLs or feature descriptions."""
+    if check:
+        _run_health_check()
+
     console.print(Panel(BANNER, border_style="blue", width=45))
 
     if costs:

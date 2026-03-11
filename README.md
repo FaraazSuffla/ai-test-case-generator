@@ -4,6 +4,19 @@ Generate structured **Playwright** or **Gherkin** test cases from any URL or fea
 
 ---
 
+## Try it in 60 seconds
+
+No API key. No setup script. Two commands.
+
+```bash
+py -m pip install click rich python-dotenv beautifulsoup4 requests
+py generate_tests.py --demo --describe "User login" --format playwright
+```
+
+You'll see 18 Playwright tests written to `output/`. Ready for your own app? See [Full AI Mode](#full-ai-mode) below.
+
+---
+
 ## Quick Start
 
 ### Prerequisites

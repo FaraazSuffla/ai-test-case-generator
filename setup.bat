@@ -8,7 +8,7 @@ echo  ==========================================
 echo.
 
 :: Check Python is installed
-python --version >nul 2>&1
+py --version >nul 2>&1
 if errorlevel 1 (
     echo  [ERROR] Python not found.
     echo  Please install Python 3.10+ from https://www.python.org/downloads/
@@ -17,13 +17,28 @@ if errorlevel 1 (
     exit /b 1
 )
 
-for /f "tokens=2" %%i in ('python --version 2^>^&1') do set PY_VER=%%i
+for /f "tokens=2" %%i in ('py --version 2^>^&1') do set PY_VER=%%i
 echo  [OK] Python %PY_VER% found
+
+:: Check Python is 3.10+
+for /f "tokens=1,2 delims=." %%a in ("%PY_VER%") do (
+    set PY_MAJOR=%%a
+    set PY_MINOR=%%b
+)
+if %PY_MAJOR% LSS 3 goto :pyver_fail
+if %PY_MAJOR% EQU 3 if %PY_MINOR% LSS 10 goto :pyver_fail
+goto :pyver_ok
+:pyver_fail
+echo  [ERROR] Python 3.10+ required. Found %PY_VER%.
+echo  Download: https://www.python.org/downloads/
+pause
+exit /b 1
+:pyver_ok
 
 :: Create virtual environment
 if not exist .venv (
     echo  [..] Creating virtual environment...
-    python -m venv .venv
+    py -m venv .venv
     echo  [OK] Virtual environment created
 ) else (
     echo  [OK] Virtual environment already exists
@@ -32,7 +47,7 @@ if not exist .venv (
 :: Activate and install dependencies
 echo  [..] Installing dependencies...
 call .venv\Scripts\activate.bat
-python -m pip install --upgrade pip --quiet
+py -m pip install --upgrade pip --quiet
 pip install -r requirements.txt --quiet
 echo  [OK] Dependencies installed
 
@@ -58,11 +73,6 @@ if not exist .env (
     echo  [OK] .env file already exists
 )
 
-:: Copy the testgen wrapper into the project root
-echo  [..] Installing testgen command...
-copy /Y testgen.bat testgen_run.bat >nul
-echo  [OK] You can now run: testgen.bat --url https://example.com
-
 echo.
 echo  ==========================================
 echo   Setup complete!
@@ -74,4 +84,8 @@ echo.
 echo  FULL mode (requires API key in .env):
 echo    testgen.bat --url https://your-app.com/login --format playwright
 echo.
+
+echo  [..] Verifying setup...
+call testgen.bat --check
+
 pause
