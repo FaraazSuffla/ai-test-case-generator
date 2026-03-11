@@ -30,10 +30,14 @@ You'll see 18 Playwright tests written to `output/`. Ready for your own app? See
 
 ### Step 1 — Clone the repo
 
+Open your terminal in your **home or projects folder** (e.g. `C:\Users\YourName` or `~/projects`), then run:
+
 ```bash
 git clone https://github.com/FaraazSuffla/ai-test-case-generator.git
 cd ai-test-case-generator
 ```
+
+> **Windows users:** Do not clone inside `C:\WINDOWS\System32` or other protected folders — you will get a Permission Denied error. If in doubt, open a fresh terminal and clone from there; it defaults to your home folder.
 
 ### Step 2 — Run setup
 
