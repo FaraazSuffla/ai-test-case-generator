@@ -6,7 +6,7 @@ Generate structured **Playwright** or **Gherkin** test cases from any URL or fea
 
 ## Try it in 60 seconds
 
-No API key. No setup script. Four commands.
+No API key. No setup script.
 
 > **Start from your home folder** — open a fresh terminal and run from there (avoids permission errors).
 
@@ -45,10 +45,8 @@ You'll see 18 Playwright tests written to `output/`. Ready for your own app? See
 
 ### Prerequisites
 
-- **Python 3.10 or higher** — check with `py --version`
+- **Python 3.10 or higher** — check with `py --version` (Windows) or `python3 --version` (Mac/Linux)
 - **git** — for cloning ([download](https://git-scm.com/))
-
-> **Mac / Linux users:** Replace `py` with `python3` in all commands below.
 
 ### Step 1 — Clone the repo
 
@@ -59,7 +57,7 @@ git clone https://github.com/FaraazSuffla/ai-test-case-generator.git
 cd ai-test-case-generator
 ```
 
-> **Windows users:** Do not clone inside `C:\WINDOWS\System32` or other protected folders — you will get a Permission Denied error. If in doubt, open a fresh terminal and clone from there; it defaults to your home folder.
+> **Windows users:** Do not clone inside `C:\WINDOWS\System32` or other protected folders — you will get a Permission Denied error. If in doubt, open a fresh terminal; it defaults to your home folder.
 
 ### Step 2 — Run setup
 
@@ -86,29 +84,7 @@ setup.bat
 
 > **Windows users:** If you see a `UnicodeEncodeError`, run `set PYTHONUTF8=1` once in your session, then retry.
 
-### Shortcut Wrappers (optional)
-
-After setup, use the `testgen` shortcut instead of typing `py generate_tests.py` every time.
-
-**Windows (Command Prompt):**
-```cmd
-testgen.bat --url https://example.com/login --format playwright
-testgen.bat --demo --describe "login page" --format playwright
-```
-
-**Windows (PowerShell):**
-```powershell
-.\testgen.bat --url https://example.com/login --format playwright
-.\testgen.bat --demo --describe "login page" --format playwright
-```
-
-**Mac / Linux:**
-```bash
-./testgen.sh --url https://example.com/login --format playwright
-./testgen.sh --demo --describe "login page" --format playwright
-```
-
-> **Note:** `testgen.py` is a stub — do not run it directly.
+Once setup is complete, see [Shortcut Wrappers](#shortcut-wrappers-optional) to skip typing `py generate_tests.py` every time.
 
 ---
 
@@ -125,18 +101,28 @@ testgen.bat --demo --describe "login page" --format playwright
 
 No API key required. Runs against [Practice Test Automation](https://practicetestautomation.com/practice-test-login/) — a real login page with known credentials (`student` / `Password123`) and real selectors, so the generated tests are actually runnable.
 
-```bash
-# Generate Playwright tests
+**Windows (Command Prompt):**
+```cmd
 py generate_tests.py --demo --url https://practicetestautomation.com/practice-test-login/ --format playwright
-
-# Generate Gherkin scenarios
 py generate_tests.py --demo --url https://practicetestautomation.com/practice-test-login/ --format gherkin
-
-# Add an HTML coverage report
 py generate_tests.py --demo --url https://practicetestautomation.com/practice-test-login/ --format playwright --report
-
-# Generate from a description instead of a URL
 py generate_tests.py --demo --describe "User registration" --format gherkin
+```
+
+**Windows (PowerShell):**
+```powershell
+py generate_tests.py --demo --url https://practicetestautomation.com/practice-test-login/ --format playwright
+py generate_tests.py --demo --url https://practicetestautomation.com/practice-test-login/ --format gherkin
+py generate_tests.py --demo --url https://practicetestautomation.com/practice-test-login/ --format playwright --report
+py generate_tests.py --demo --describe "User registration" --format gherkin
+```
+
+**Mac / Linux:**
+```bash
+python3 generate_tests.py --demo --url https://practicetestautomation.com/practice-test-login/ --format playwright
+python3 generate_tests.py --demo --url https://practicetestautomation.com/practice-test-login/ --format gherkin
+python3 generate_tests.py --demo --url https://practicetestautomation.com/practice-test-login/ --format playwright --report
+python3 generate_tests.py --demo --describe "User registration" --format gherkin
 ```
 
 Demo mode produces **18 Playwright tests** or **16 Gherkin scenarios** across 4 categories per run.
@@ -145,24 +131,33 @@ Demo mode produces **18 Playwright tests** or **16 Gherkin scenarios** across 4 
 
 ## Full AI Mode
 
-Set your API key, then point the tool at any URL or description:
+Set your API key first, then point the tool at any URL or description.
 
-```bash
-# Set your key (pick one)
-export ANTHROPIC_API_KEY="your-key"
-export OPENAI_API_KEY="your-key"
-
-# Generate tests from a live page (uses Claude by default)
+**Windows (Command Prompt):**
+```cmd
+set ANTHROPIC_API_KEY=your-key
 py generate_tests.py --url https://your-app.com/login --format playwright
-
-# Use OpenAI instead
 py generate_tests.py --url https://your-app.com/login --format gherkin --provider openai
-
-# Include accessibility tree analysis for smarter tests
 py generate_tests.py --url https://your-app.com/login --format playwright --analyze
-
-# Generate from a description (no URL needed)
 py generate_tests.py --describe "Shopping cart with coupon codes" --format playwright
+```
+
+**Windows (PowerShell):**
+```powershell
+$env:ANTHROPIC_API_KEY="your-key"
+py generate_tests.py --url https://your-app.com/login --format playwright
+py generate_tests.py --url https://your-app.com/login --format gherkin --provider openai
+py generate_tests.py --url https://your-app.com/login --format playwright --analyze
+py generate_tests.py --describe "Shopping cart with coupon codes" --format playwright
+```
+
+**Mac / Linux:**
+```bash
+export ANTHROPIC_API_KEY="your-key"
+python3 generate_tests.py --url https://your-app.com/login --format playwright
+python3 generate_tests.py --url https://your-app.com/login --format gherkin --provider openai
+python3 generate_tests.py --url https://your-app.com/login --format playwright --analyze
+python3 generate_tests.py --describe "Shopping cart with coupon codes" --format playwright
 ```
 
 ---
@@ -222,12 +217,38 @@ xdg-open output/report_*.html   # Linux
 
 ---
 
+## Shortcut Wrappers (optional)
+
+After setup, use the `testgen` shortcut instead of typing `py generate_tests.py` every time.
+
+**Windows (Command Prompt):**
+```cmd
+testgen.bat --url https://example.com/login --format playwright
+testgen.bat --demo --describe "login page" --format playwright
+```
+
+**Windows (PowerShell):**
+```powershell
+.\testgen.bat --url https://example.com/login --format playwright
+.\testgen.bat --demo --describe "login page" --format playwright
+```
+
+**Mac / Linux:**
+```bash
+./testgen.sh --url https://example.com/login --format playwright
+./testgen.sh --demo --describe "login page" --format playwright
+```
+
+> **Note:** PowerShell requires `.\` before script names. CMD does not. `testgen.py` is a stub — do not run it directly.
+
+---
+
 ## What Gets Generated
 
 Every run produces tests across 4 categories:
 
 | Category | What's Tested | Example |
-|----------|--------------|---------| 
+|----------|--------------|---------|
 | ✅ Happy Path | Valid inputs, expected flows | Login with correct credentials |
 | ❌ Negative | Invalid inputs, error handling | Wrong password, empty fields |
 | 🔄 Edge Cases | Security & unusual inputs | SQL injection, XSS, case sensitivity |
@@ -282,14 +303,28 @@ class TestLoginBoundary:
 
 Add `--run` to execute tests immediately after generation:
 
-```bash
+**Windows (Command Prompt / PowerShell):**
+```cmd
 py generate_tests.py --demo --url https://practicetestautomation.com/practice-test-login/ --format playwright --run
+```
+
+**Mac / Linux:**
+```bash
+python3 generate_tests.py --demo --url https://practicetestautomation.com/practice-test-login/ --format playwright --run
 ```
 
 Or run them manually after generation:
 
-```bash
+**Windows (Command Prompt / PowerShell):**
+```cmd
 py -m pip install playwright pytest
+playwright install chromium
+pytest output/test_practicetestautomation_com_practice_test_login_playwright.py -v
+```
+
+**Mac / Linux:**
+```bash
+pip3 install playwright pytest
 playwright install chromium
 pytest output/test_practicetestautomation_com_practice_test_login_playwright.py -v
 ```
@@ -302,8 +337,14 @@ pytest output/test_practicetestautomation_com_practice_test_login_playwright.py 
 
 Add `--report` to any command to generate a standalone HTML report:
 
-```bash
+**Windows (Command Prompt / PowerShell):**
+```cmd
 py generate_tests.py --demo --url https://practicetestautomation.com/practice-test-login/ --format playwright --report
+```
+
+**Mac / Linux:**
+```bash
+python3 generate_tests.py --demo --url https://practicetestautomation.com/practice-test-login/ --format playwright --report
 ```
 
 The report includes:
@@ -320,8 +361,14 @@ The report includes:
 
 Every API call is logged. View your usage at any time:
 
-```bash
+**Windows (Command Prompt / PowerShell):**
+```cmd
 py generate_tests.py --costs
+```
+
+**Mac / Linux:**
+```bash
+python3 generate_tests.py --costs
 ```
 
 Shows total requests, token counts, estimated cost, and a per-provider breakdown. If no API calls have been made yet, it shows "No API calls logged yet."
