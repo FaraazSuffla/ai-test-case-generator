@@ -35,40 +35,34 @@ git clone https://github.com/FaraazSuffla/ai-test-case-generator.git
 cd ai-test-case-generator
 ```
 
-### Step 2 — Install dependencies
+### Step 2 — Run setup
 
-**Demo mode only** (no API key needed):
-```bash
-py -m pip install click rich python-dotenv beautifulsoup4 requests
+Run the setup script for your terminal. This creates a virtual environment and installs all dependencies.
+
+**Windows (Command Prompt):**
+```cmd
+setup.bat
 ```
 
-**Full AI mode** (also run these):
-```bash
-py -m pip install -r requirements.txt
-playwright install chromium
+**Windows (PowerShell):**
+```powershell
+.\setup.bat
 ```
 
-> **Tip:** If you get `ModuleNotFoundError`, use `py -m pip install` instead of `pip install`.
+**Mac / Linux:**
+```bash
+./setup.sh
+```
 
-> **Windows users:** If you see a `UnicodeEncodeError` when running any command, your terminal uses legacy encoding. Fix it by running this once in your session:
-> ```
-> set PYTHONUTF8=1
-> ```
-> Then re-run your command. Windows Terminal (not Command Prompt) with UTF-8 enabled avoids this entirely.
+> **Note:** PowerShell requires `.\` before script names. CMD does not.
+
+> **Tip:** If you get `ModuleNotFoundError` without using the setup script, run `py -m pip install -r requirements.txt` manually.
+
+> **Windows users:** If you see a `UnicodeEncodeError`, run `set PYTHONUTF8=1` once in your session, then retry.
 
 ### Shortcut Wrappers (optional)
 
-The `testgen` scripts are thin wrappers that activate the venv and run `generate_tests.py` for you. They require a one-time setup to create the virtual environment first.
-
-**Step 1 — Run setup once:**
-
-| Shell | Command |
-|-------|---------|
-| Windows (Command Prompt) | `setup.bat` |
-| Windows (PowerShell) | `.\setup.bat` |
-| Mac / Linux | `./setup.sh` |
-
-**Step 2 — Use the shortcut:**
+After setup, use the `testgen` shortcut instead of typing `py generate_tests.py` every time.
 
 **Windows (Command Prompt):**
 ```cmd
@@ -88,7 +82,7 @@ testgen.bat --demo --describe "login page" --format playwright
 ./testgen.sh --demo --describe "login page" --format playwright
 ```
 
-> **Note:** PowerShell requires the `.\` prefix to run scripts from the current directory. CMD does not. `testgen.py` is a stub — do not run it directly.
+> **Note:** `testgen.py` is a stub — do not run it directly.
 
 ---
 
