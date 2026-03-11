@@ -66,13 +66,19 @@ testgen.bat --url https://example.com/login --format playwright
 testgen.bat --demo --describe "login page" --format playwright
 ```
 
+**Windows (PowerShell):**
+```powershell
+.\testgen.bat --url https://example.com/login --format playwright
+.\testgen.bat --demo --describe "login page" --format playwright
+```
+
 **Mac / Linux:**
 ```bash
 ./testgen.sh --url https://example.com/login --format playwright
 ./testgen.sh --demo --describe "login page" --format playwright
 ```
 
-> **Note:** `testgen.py` is a stub — do not run it directly. Use `testgen.bat` on Windows or `./testgen.sh` on Mac/Linux.
+> **Note:** `testgen.py` is a stub — do not run it directly. Use `testgen.bat` (CMD) or `.\testgen.bat` (PowerShell) on Windows, or `./testgen.sh` on Mac/Linux.
 
 ---
 
