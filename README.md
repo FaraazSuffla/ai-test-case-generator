@@ -58,7 +58,17 @@ playwright install chromium
 
 ### Shortcut Wrappers (optional)
 
-After running setup, you can use the `testgen` shortcut scripts instead of typing `python generate_tests.py` every time.
+The `testgen` scripts are thin wrappers that activate the venv and run `generate_tests.py` for you. They require a one-time setup to create the virtual environment first.
+
+**Step 1 — Run setup once:**
+
+| Shell | Command |
+|-------|---------|
+| Windows (Command Prompt) | `setup.bat` |
+| Windows (PowerShell) | `.\setup.bat` |
+| Mac / Linux | `./setup.sh` |
+
+**Step 2 — Use the shortcut:**
 
 **Windows (Command Prompt):**
 ```cmd
@@ -78,7 +88,7 @@ testgen.bat --demo --describe "login page" --format playwright
 ./testgen.sh --demo --describe "login page" --format playwright
 ```
 
-> **Note:** `testgen.py` is a stub — do not run it directly. Use `testgen.bat` (CMD) or `.\testgen.bat` (PowerShell) on Windows, or `./testgen.sh` on Mac/Linux.
+> **Note:** PowerShell requires the `.\` prefix to run scripts from the current directory. CMD does not. `testgen.py` is a stub — do not run it directly.
 
 ---
 
