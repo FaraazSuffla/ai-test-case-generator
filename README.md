@@ -170,27 +170,29 @@ py generate_tests.py --describe "Shopping cart with coupon codes" --format playw
 
 All generated files are saved to the `output/` folder by default. Use `--output-dir <path>` to write to a different location.
 
-```bash
-# List generated files
-ls output/
-
-# View Playwright tests
-cat output/test_*.py
-
-# View Gherkin scenarios
-cat output/*.feature
-
-# Open HTML report
-start (Get-Item output/report_*.html).FullName   # Windows (PowerShell)
-open output/report_*.html                        # macOS
-```
-
-**Windows (Command Prompt) equivalents:**
+**Windows (Command Prompt):**
 ```cmd
 dir output\
 type output\test_*.py
 for %f in (output\report_*.html) do start %f
 ```
+
+**Windows (PowerShell):**
+```powershell
+dir output\
+Get-Content output\test_*.py
+start (Get-Item output/report_*.html).FullName
+```
+
+**Mac / Linux:**
+```bash
+ls output/
+cat output/test_*.py
+open output/report_*.html        # macOS
+xdg-open output/report_*.html   # Linux
+```
+
+> **Tip:** Add `--open-report` to any command to generate and open the report automatically.
 
 ---
 
