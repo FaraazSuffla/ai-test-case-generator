@@ -18,6 +18,11 @@ import time
 import webbrowser
 import os
 
+# Ensure UTF-8 output on Windows (required for emoji in banner)
+if sys.platform == "win32" and hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 import click
 from rich.console import Console
 from rich.panel import Panel
@@ -26,7 +31,7 @@ from src.formatters.playwright_fmt import save_playwright_tests
 from src.formatters.gherkin_fmt import save_gherkin_tests
 from src.demo_templates import get_demo_output
 
-console = Console()
+console = Console(legacy_windows=False)
 
 BANNER = """
 🤖 AI Test Case Generator
@@ -76,7 +81,7 @@ def _run_generation(
             console.print(
                 "\n[yellow]💡 Tip:[/yellow] Run with [bold]--demo[/bold] to "
                 "try the tool without an API key:\n"
-                "  python generate_tests.py --demo --describe \"login page\" --format playwright"
+                "  py generate_tests.py --demo --describe \"login page\" --format playwright"
             )
             sys.exit(1)
         except Exception as e:
@@ -93,8 +98,7 @@ def _run_generation(
     conftest_path = None
     if conftest and output_format == "playwright":
         from src.conftest_generator import generate_conftest
-        # TODO: pass output_dir here once conftest_generator scope is confirmed (future PR)
-        conftest_path = generate_conftest()
+        conftest_path = generate_conftest(output_dir)
 
     report_path = ""
     if report:
@@ -226,9 +230,9 @@ def main(
         console.print(
             "[red]✗ Error:[/red] Provide either --url or --describe.\n"
             "\nExamples:\n"
-            "  python generate_tests.py --url https://example.com/login --format playwright\n"
-            "  python generate_tests.py --describe \"User registration\" --format gherkin\n"
-            "  python generate_tests.py --demo --describe \"login page\" --format playwright"
+            "  py generate_tests.py --url https://example.com/login --format playwright\n"
+            "  py generate_tests.py --describe \"User registration\" --format gherkin\n"
+            "  py generate_tests.py --demo --describe \"login page\" --format playwright"
         )
         sys.exit(1)
 

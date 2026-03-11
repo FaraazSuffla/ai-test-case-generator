@@ -6,6 +6,11 @@ Generate structured **Playwright** or **Gherkin** test cases from any URL or fea
 
 ## Quick Start
 
+### Prerequisites
+
+- **Python 3.10 or higher** — check with `py --version`
+- **git** — for cloning ([download](https://git-scm.com/))
+
 ### Step 1 — Clone the repo
 
 ```bash
@@ -27,6 +32,12 @@ playwright install chromium
 ```
 
 > **Tip:** If you get `ModuleNotFoundError`, use `py -m pip install` instead of `pip install`.
+
+> **Windows users:** If you see a `UnicodeEncodeError` when running any command, your terminal uses legacy encoding. Fix it by running this once in your session:
+> ```
+> set PYTHONUTF8=1
+> ```
+> Then re-run your command. Windows Terminal (not Command Prompt) with UTF-8 enabled avoids this entirely.
 
 ### Shortcut Wrappers (optional)
 
@@ -117,7 +128,7 @@ py generate_tests.py --describe "Shopping cart with coupon codes" --format playw
 | `--demo` | Use built-in templates, no API key needed | off |
 | `--report` | Generate an HTML coverage report | off |
 | `--open-report` | Generate report and open it in the browser immediately | off |
-| `--run` | Generate tests then execute them immediately with pytest / behave | off |
+| `--run` | Generate tests then execute them immediately with pytest / behave (requires `pytest` or `behave` installed) | off |
 | `--watch` | Re-generate whenever the target URL changes (requires `--url`) | off |
 | `--watch-interval` | Polling interval for `--watch` mode (seconds) | `60` |
 | `--conftest/--no-conftest` | Generate `conftest.py` with Playwright fixtures | on |
@@ -145,6 +156,12 @@ cat output/*.feature
 # Open HTML report
 start output/report_*.html   # Windows
 open output/report_*.html    # macOS
+```
+
+**Windows (Command Prompt) equivalents:**
+```cmd
+dir output\
+type output\test_*.py
 ```
 
 ---
@@ -251,7 +268,7 @@ Every API call is logged. View your usage at any time:
 py generate_tests.py --costs
 ```
 
-Shows total requests, token counts, estimated cost, and a per-provider breakdown.
+Shows total requests, token counts, estimated cost, and a per-provider breakdown. If no API calls have been made yet, it shows "No API calls logged yet."
 
 ---
 
