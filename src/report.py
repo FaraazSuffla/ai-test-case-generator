@@ -15,6 +15,7 @@ Features:
 import os
 import re
 import webbrowser
+from pathlib import Path
 from datetime import datetime
 from html import escape
 
@@ -672,8 +673,7 @@ def generate_report(
 
     if auto_open:
         try:
-            abs_path = os.path.abspath(report_path)
-            webbrowser.open(f"file://{abs_path}")
+            webbrowser.open(Path(report_path).absolute().as_uri())
         except Exception:
             pass
 

@@ -17,6 +17,13 @@ fi
 PY_VER=$(python3 --version)
 echo " [OK] $PY_VER found"
 
+# Require Python 3.10+
+if ! python3 -c "import sys; sys.exit(0 if sys.version_info >= (3, 10) else 1)" 2>/dev/null; then
+    echo " [ERROR] Python 3.10 or higher is required (found $PY_VER)."
+    echo " Install it from https://www.python.org/downloads/"
+    exit 1
+fi
+
 # Create virtual environment
 if [ ! -d ".venv" ]; then
     echo " [..] Creating virtual environment..."

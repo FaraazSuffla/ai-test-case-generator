@@ -26,6 +26,8 @@ You'll see 18 Playwright tests written to `output/`. Ready for your own app? See
 - **Python 3.10 or higher** — check with `py --version`
 - **git** — for cloning ([download](https://git-scm.com/))
 
+> **Mac / Linux users:** Replace `py` with `python3` in all commands below.
+
 ### Step 1 — Clone the repo
 
 ```bash
@@ -177,6 +179,7 @@ open output/report_*.html                        # macOS
 ```cmd
 dir output\
 type output\test_*.py
+for %f in (output\report_*.html) do start %f
 ```
 
 ---
