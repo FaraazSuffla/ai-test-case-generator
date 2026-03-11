@@ -11,7 +11,8 @@ Valid credentials: student / Password123
 # Practice Test Automation — Login (https://practicetestautomation.com)
 # ---------------------------------------------------------------------------
 
-DEMO_PLAYWRIGHT_LOGIN = '''import pytest
+DEMO_PLAYWRIGHT_LOGIN = '''import re
+import pytest
 from playwright.sync_api import Page, expect
 
 
@@ -27,7 +28,7 @@ class TestLoginHappyPath:
         page.locator("#username").fill("student")
         page.locator("#password").fill("Password123")
         page.locator("#submit").click()
-        expect(page).to_have_url_matching(".*logged-in-successfully.*")
+        expect(page).to_have_url(re.compile(".*logged-in-successfully.*"))
 
     def test_successful_login_shows_congratulations(self, page: Page):
         """Verify logged-in page contains success message."""
@@ -52,7 +53,7 @@ class TestLoginHappyPath:
         page.locator("#password").fill("Password123")
         page.locator("#submit").click()
         page.get_by_role("link", name="Log out").click()
-        expect(page).to_have_url("https://practicetestautomation.com/")
+        expect(page).to_have_url(BASE_URL)
 
 
 class TestLoginNegative:
@@ -109,7 +110,7 @@ class TestLoginEdgeCases:
         page.locator("#password").fill("anything")
         page.locator("#submit").click()
         expect(page.locator("#error")).to_be_visible()
-        expect(page).not_to_have_url_matching(".*logged-in-successfully.*")
+        expect(page).not_to_have_url(re.compile(".*logged-in-successfully.*"))
 
     def test_login_with_xss_payload_in_username(self, page: Page):
         """Verify login sanitises XSS payloads in username."""
@@ -476,7 +477,7 @@ DEMO_GHERKIN_REGISTRATION = '''Feature: User Registration
 def _detect_feature(url: str = "", description: str = "") -> str:
     """Detect what type of feature is being tested based on keywords."""
     text = (url + " " + description).lower()
-    if any(kw in text for kw in ["register", "signup", "sign up", "create account"]):
+    if any(kw in text for kw in ["registr", "signup", "sign up", "create account"]):
         return "registration"
     # Default to login for login keywords or anything else
     return "login"
