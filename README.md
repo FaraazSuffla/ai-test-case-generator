@@ -169,8 +169,8 @@ cat output/test_*.py
 cat output/*.feature
 
 # Open HTML report
-start output/report_*.html   # Windows
-open output/report_*.html    # macOS
+start (Get-Item output/report_*.html).FullName   # Windows (PowerShell)
+open output/report_*.html                        # macOS
 ```
 
 **Windows (Command Prompt) equivalents:**
