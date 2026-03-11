@@ -27,3 +27,9 @@ Thumbs.db
 output/
 cost_log.json
 .api_key
+
+# Claude Code
+.claude/
+
+# Planning docs
+docs/
