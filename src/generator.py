@@ -33,6 +33,7 @@ DEFAULT_MODELS = {
 }
 
 _RETRY_DELAYS: list[int] = [2, 4, 8]
+LLM_MAX_OUTPUT_TOKENS = 4096
 
 
 def _build_context(
@@ -100,7 +101,7 @@ def _call_anthropic(prompt: str, model: str, *, retry: bool = True) -> tuple[str
         try:
             response = client.messages.create(
                 model=model,
-                max_tokens=4096,
+                max_tokens=LLM_MAX_OUTPUT_TOKENS,
                 system=SYSTEM_PROMPT,
                 messages=[{"role": "user", "content": prompt}],
             )
@@ -154,7 +155,7 @@ def _call_openai(prompt: str, model: str, *, retry: bool = True) -> tuple[str, i
                     {"role": "system", "content": SYSTEM_PROMPT},
                     {"role": "user", "content": prompt},
                 ],
-                max_tokens=4096,
+                max_tokens=LLM_MAX_OUTPUT_TOKENS,
             )
             break
         except _RETRYABLE as exc:

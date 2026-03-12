@@ -5,9 +5,10 @@ properly structured .feature file.
 """
 
 import os
-import re
 from datetime import datetime
 from rich.console import Console
+
+from src.formatters.utils import _sanitise_name
 
 console = Console()
 
@@ -24,14 +25,7 @@ HEADER_TEMPLATE = """# Auto-generated Gherkin feature file
 
 def _sanitise_filename(source: str) -> str:
     """Convert a URL or description into a safe .feature filename."""
-    name = source.replace("https://", "").replace("http://", "")
-    name = re.sub(r"[^a-zA-Z0-9]", "_", name)
-    name = re.sub(r"_+", "_", name).strip("_")
-
-    if len(name) > 60:
-        name = name[:60]
-
-    return f"{name}.feature"
+    return f"{_sanitise_name(source)}.feature"
 
 
 def save_gherkin_tests(

@@ -12,6 +12,13 @@ from rich.console import Console
 
 console = Console()
 
+# Constants
+PAGE_LOAD_TIMEOUT_MS = 30000
+DYNAMIC_RENDER_WAIT_MS = 2000
+ELEMENTS_PREVIEW_LIMIT = 30
+NAV_LINKS_PREVIEW_LIMIT = 15
+A11Y_TREE_MAX_CHARS = 5000
+
 
 @dataclass
 class PageAnalysis:
@@ -35,12 +42,12 @@ class PageAnalysis:
         elements_str = "\n".join(
             f"  - {e['tag']} | role={e.get('role', 'N/A')} | "
             f"text='{e.get('text', '')[:50]}'"
-            for e in self.interactive_elements[:30]
+            for e in self.interactive_elements[:ELEMENTS_PREVIEW_LIMIT]
         ) or "  None found"
 
         nav_str = "\n".join(
             f"  - {n.get('text', 'N/A')[:40]} -> {n.get('href', 'N/A')[:60]}"
-            for n in self.nav_links[:15]
+            for n in self.nav_links[:NAV_LINKS_PREVIEW_LIMIT]
         ) or "  None found"
 
         context = (
@@ -155,7 +162,7 @@ def _format_a11y_node(node: dict, depth: int = 0) -> str:
 
     # Limit total output to prevent token explosion
     result = "\n".join(lines)
-    if depth == 0 and len(result) > 5000:
+    if depth == 0 and len(result) > A11Y_TREE_MAX_CHARS:
         result = result[:5000] + "\n... (truncated for token efficiency)"
     return result
 
@@ -184,8 +191,8 @@ def analyse_page(url: str, include_a11y: bool = False) -> PageAnalysis:
         page = context.new_page()
 
         try:
-            page.goto(url, wait_until="domcontentloaded", timeout=30000)
-            page.wait_for_timeout(2000)  # Allow dynamic content to render
+            page.goto(url, wait_until="domcontentloaded", timeout=PAGE_LOAD_TIMEOUT_MS)
+            page.wait_for_timeout(DYNAMIC_RENDER_WAIT_MS)  # Allow dynamic content to render
 
             html = page.content()
             title = page.title()

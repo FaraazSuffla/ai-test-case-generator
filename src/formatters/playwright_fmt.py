@@ -5,9 +5,10 @@ structured Python test file ready to run with pytest.
 """
 
 import os
-import re
 from datetime import datetime
 from rich.console import Console
+
+from src.formatters.utils import _sanitise_name
 
 console = Console()
 
@@ -28,16 +29,7 @@ Run with: pytest {filename} -v
 
 def _sanitise_filename(source: str) -> str:
     """Convert a URL or description into a safe filename."""
-    # Extract meaningful part from URL
-    name = source.replace("https://", "").replace("http://", "")
-    name = re.sub(r"[^a-zA-Z0-9]", "_", name)
-    name = re.sub(r"_+", "_", name).strip("_")
-
-    # Truncate if too long
-    if len(name) > 60:
-        name = name[:60]
-
-    return f"test_{name}_playwright.py"
+    return f"test_{_sanitise_name(source)}_playwright.py"
 
 
 def save_playwright_tests(
